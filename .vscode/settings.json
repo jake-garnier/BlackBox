@@ -1,0 +1,7 @@
+{
+    "editor.rulers": [
+        120
+    ],
+    "python.autoComplete.extraPaths": ["flaskw/"],
+    "python.defaultInterpreterPath": "/Library/Frameworks/Python.framework/Versions/3.6/bin/python3"
+}

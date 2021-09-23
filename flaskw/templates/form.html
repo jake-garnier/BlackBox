@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<style>
+table, th, td {
+  border:1px solid black;
+}
+</style>
+<body>
+
+<h2>Form</h2>
+
+{% block content %}
+  <form method="post">
+    <label for="title">Title</label>
+    <input name="title" id="title" required>
+    <label for="description">Description</label>
+    <input name="description" id="description" required>
+    <label for="difficulty">Difficulty</label>
+    <input type="number" name="difficulty" id="difficulty" required>
+    <label for="expiration_date">Expiration Date</label>
+    <input type="datetime-local" name="expiration_date" id="expiration_date">
+    <label for="payout">Payout</label>
+    <input type="number" name="payout" id="payout">
+    <input type="submit" value="Post">
+  </form>
+{% endblock %}
+
+</body>
+</html>

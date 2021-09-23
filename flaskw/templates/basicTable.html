@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<style>
+table, th, td {
+  border:1px solid black;
+}
+</style>
+<body>
+
+<h2>A basic HTML table</h2>
+
+<table style="width:100%">
+  <tr>
+    <th>ID</th>
+    <th>Title</th>
+    <th>Difficulty</th>
+    <th>Created</th>
+    <th>Expires</th>
+    <th>Payout</th>
+    <th>Link</th>
+  </tr>
+{% for box in box_contracts %}
+  <tr>
+    <td>{{ box[0] }}</td>
+    <td>{{ box[1] }}</td>
+    <td>{{ box[3] }}</td>
+    <td>{{ box[4] }}</td>
+    <td>{{ box[5] }}</td>
+    <td>{{ box[6] }}</td>
+    <td><a href="{{url_for('view_contract', id=box[0])}}">Go to Form Page</a></td>
+  </tr>
+{% endfor %}
+</table>
+
+<p>To undestand the example better, we have added borders to the table.</p>
+
+<a href="{{url_for('form')}}">Go to Form Page</a>
+
+</body>
+</html>
