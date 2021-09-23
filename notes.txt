@@ -1,6 +1,0 @@
-run_ph workflow
-    we have a database with tables of nameus face embeddings and their corresponding IDs
-    we have a script that periodically pulls new faces from nameus database removes defaults and gets their embeddings
-    
-    we have a script which periodically gets the most recent ph thumbnails and extracts their faces and create embeddings
-    the embeddings are then compared to 
