@@ -1,27 +1,37 @@
 <!DOCTYPE html>
 <html>
-<style>
-table, th, td {
-  border:1px solid black;
-}
-</style>
 <body>
 
 <h2>Form</h2>
 
+{% for message in get_flashed_messages() %}
+  <div class="flash">{{ message }}</div>
+{% endfor %}
+
 {% block content %}
-  <form method="post">
-    <label for="title">Title</label>
-    <input name="title" id="title" required>
-    <label for="description">Description</label>
-    <input name="description" id="description" required>
-    <label for="difficulty">Difficulty</label>
-    <input type="number" name="difficulty" id="difficulty" required>
-    <label for="expiration_date">Expiration Date</label>
-    <input type="datetime-local" name="expiration_date" id="expiration_date">
-    <label for="payout">Payout</label>
-    <input type="number" name="payout" id="payout">
-    <input type="submit" value="Post">
+  <form method="post" enctype="multipart/form-data">
+    <p>
+      <label for="title">Title</label>
+      <input name="title" id="title">
+    </p>
+    <p>
+      <label for="description">Description</label>
+      <input name="description" id="description">
+    </p>
+    <p>
+      <label for="difficulty">Difficulty</label>
+      <input type="number" name="difficulty" id="difficulty">
+    </p>
+    <p>
+      <label for="expiration_date">Expiration Date</label>
+      <input type="datetime-local" name="expiration_date" id="expiration_date">
+    </p>
+    <p>
+      <label for="payout">Payout</label>
+      <input type="number" name="payout" id="payout">
+    </p>
+    <p><input type="file" name="file"></p>
+    <p><input type="submit" value="Post"></p>
   </form>
 {% endblock %}
 

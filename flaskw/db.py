@@ -64,6 +64,11 @@ def insert_box_contract(box_info):
         )
         db.commit()
 
+    return list(db.execute(
+        'SELECT id FROM box_contract WHERE title = ?', (box_info[0], )
+    ).fetchone())[0]
+    
+
 def get_box_contract(id):
     db = get_db()
     return db.execute(

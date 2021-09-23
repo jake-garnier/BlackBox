@@ -10,6 +10,8 @@ import datetime
 # docker build -t flask-container .
 # docker run -p 5000:5000 flask-container
 
+ALLOWED_EXTENSIONS = {'java'}
+
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
@@ -31,6 +33,10 @@ def create_app(test_config=None):
     except OSError:
         pass
 
+    def allowed_file(filename):
+        return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
     @app.route('/form', methods=('GET', 'POST'))
     def form():
         if request.method == 'POST':
@@ -39,6 +45,7 @@ def create_app(test_config=None):
             difficulty = request.form['difficulty']
             expiration_date = request.form['expiration_date']
             payout = request.form['payout']
+            uploaded_file = request.files['file']
 
             error = None
 
@@ -52,17 +59,27 @@ def create_app(test_config=None):
                 error = 'Expiration Date is required'
             elif not payout:
                 error = 'Payout is required'
+            elif not uploaded_file:
+                error = 'Test file is required'
+            elif not allowed_file(uploaded_file.filename):
+                error = 'Test file is not a Java file'
             
             if error is None:
                 box_info = (title, description, difficulty, datetime.datetime.now(), 
                             expiration_date, payout)
 
-                db.insert_box_contract(box_info)
+                box_contract_id = db.insert_box_contract(box_info)
+
+                box_contract_files_folder = 'files/' + str(box_contract_id) + '_files'
+                os.makedirs(box_contract_files_folder)
+
+                if uploaded_file.filename != '':
+                    uploaded_file.save(box_contract_files_folder + '/test.java')
 
                 return redirect(url_for('table'))
             
             flash(error)
-        
+
         return render_template('form.html')
 
     @app.route('/table')

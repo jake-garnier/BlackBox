@@ -7,7 +7,11 @@ table, th, td {
 </style>
 <body>
 
-<h2>A basic HTML table</h2>
+<h2>Box Table</h2>
+
+<p>
+  <a href="{{url_for('form')}}">Create a Box</a>
+</p>
 
 <table style="width:100%">
   <tr>
@@ -27,14 +31,10 @@ table, th, td {
     <td>{{ box[4] }}</td>
     <td>{{ box[5] }}</td>
     <td>{{ box[6] }}</td>
-    <td><a href="{{url_for('view_contract', id=box[0])}}">Go to Form Page</a></td>
+    <td><a href="{{url_for('view_contract', id=box[0])}}">Open</a></td>
   </tr>
 {% endfor %}
 </table>
-
-<p>To undestand the example better, we have added borders to the table.</p>
-
-<a href="{{url_for('form')}}">Go to Form Page</a>
 
 </body>
 </html>
