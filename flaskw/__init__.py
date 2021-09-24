@@ -63,6 +63,8 @@ def create_app(test_config=None):
                 error = 'Test file is required'
             elif not allowed_file(uploaded_file.filename):
                 error = 'Test file is not a Java file'
+            elif uploaded_file.filename is '':
+                error = 'Test file has no name'
             
             if error is None:
                 box_info = (title, description, difficulty, datetime.datetime.now(), 
@@ -86,8 +88,31 @@ def create_app(test_config=None):
     def table():
         return render_template('basicTable.html', box_contracts=db.get_box_contracts())
 
-    @app.route('/table/<int:id>')
+    @app.route('/table/<int:id>', methods=('GET', 'POST'))
     def view_contract(id):
+
+        if request.method == 'POST':
+            uploaded_file = request.files['file']
+            contract_files_dir = 'files/' + str(id) + '_files'
+
+            error = None
+
+            if not uploaded_file:
+                error = 'Attempt file is required'
+            elif not allowed_file(uploaded_file.filename):
+                error = 'Attempt file is not a Java file'
+            elif uploaded_file.filename is '':
+                error = 'Attempt file has no name'
+            elif not os.path.isdir(contract_files_dir):
+                error = '{Internal Error} Contract does not have file directory'
+            
+            if error is None:
+                uploaded_file.save(contract_files_dir + '/attempt.java')
+                flash('Success!')
+            
+            else:
+                flash(error)
+
         return render_template('contractView.html', box_contract=db.get_box_contract(id))
 
     @app.route('/addBoxContracts', methods = ['POST'])

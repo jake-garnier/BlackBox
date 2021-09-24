@@ -2,28 +2,23 @@
 <html>
 <body>
 
-<h2>A basic HTML table</h2>
+{% for message in get_flashed_messages() %}
+  <div class="flash">{{ message }}</div>
+{% endfor %}
 
-<table style="width:100%">
-  <tr>
-    <th>ID</th>
-    <th>Title</th>
-    <th>Difficulty</th>
-    <th>Created</th>
-    <th>Expires</th>
-    <th>Payout</th>
-  </tr>
-  <tr>
-    <td>{{ box_contract[0] }}</td>
-    <td>{{ box_contract[1] }}</td>
-    <td>{{ box_contract[3] }}</td>
-    <td>{{ box_contract[4] }}</td>
-    <td>{{ box_contract[5] }}</td>
-    <td>{{ box_contract[6] }}</td>
-  </tr>
-</table>
+<h2>Box Contract</h2>
 
-<p>To undestand the example better, we have added borders to the table.</p>
+<p>ID: {{ box_contract[0] }}</p>
+<p>Title: {{ box_contract[1] }}</p>
+<p>Difficulty: {{ box_contract[3] }}</p>
+<p>Created: {{ box_contract[4] }}</p>
+<p>Expires: {{ box_contract[5] }}</p>
+<p>Payout: {{ box_contract[6] }}</p>
+
+<form method="post" enctype="multipart/form-data">
+  <p><input type="file" name="file"></p>
+  <p><input type="submit" value="Attempt"></p>
+</form>
 
 </body>
 </html>

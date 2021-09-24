@@ -3,6 +3,8 @@ import sqlite3
 import click
 from flask import current_app, g
 from flask.cli import with_appcontext
+import shutil
+import os
 
 def get_db():
     if 'db' not in g:
@@ -36,6 +38,8 @@ def init_db():
 def init_db_command():
     """Clear the existing data and create new tables."""
     init_db()
+    shutil.rmtree('files')
+    os.makedirs('files')
     click.echo('Initialized the database.')
 
 
@@ -54,19 +58,15 @@ Inserts an box contract into the box contract table
 """
 def insert_box_contract(box_info):
     db = get_db()
-    if db.execute(
-        'SELECT id FROM box_contract WHERE title = ?', (box_info[0], )
-    ).fetchone() is None:
-        db.execute(
-            'INSERT INTO box_contract (title, descript, difficulty, \
-            creation_date, expiration_date, payout) VALUES (?, ?, ?, ?, ?, ?)',
-            box_info
-        )
-        db.commit()
+    cursor = db.cursor()
+    cursor.execute(
+        'INSERT INTO box_contract (title, descript, difficulty, \
+        creation_date, expiration_date, payout) VALUES (?, ?, ?, ?, ?, ?)',
+        box_info
+    )
+    db.commit()
 
-    return list(db.execute(
-        'SELECT id FROM box_contract WHERE title = ?', (box_info[0], )
-    ).fetchone())[0]
+    return cursor.lastrowid
     
 
 def get_box_contract(id):
