@@ -1,5 +1,6 @@
 import os
 import flaskw.db as db
+import flaskw.form as form
 from flask import Flask, request, render_template, redirect, url_for, flash
 import datetime
 
@@ -10,7 +11,6 @@ import datetime
 # docker build -t flask-container .
 # docker run -p 5000:5000 flask-container
 
-ALLOWED_EXTENSIONS = {'java'}
 
 def create_app(test_config=None):
     # create and configure the app
@@ -33,117 +33,45 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    def allowed_file(filename):
-        return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-    @app.route('/form', methods=('GET', 'POST'))
-    def form():
-        if request.method == 'POST':
-            title = request.form['title']
-            description = request.form['description']
-            difficulty = request.form['difficulty']
-            expiration_date = request.form['expiration_date']
-            payout = request.form['payout']
-            uploaded_file = request.files['file']
-
-            error = None
-
-            if not title:
-                error = 'Title is required'
-            elif not description:
-                error = 'Description is required'
-            elif not difficulty:
-                error = 'Difficulty is required'
-            elif not expiration_date:
-                error = 'Expiration Date is required'
-            elif not payout:
-                error = 'Payout is required'
-            elif not uploaded_file:
-                error = 'Test file is required'
-            elif not allowed_file(uploaded_file.filename):
-                error = 'Test file is not a Java file'
-            elif uploaded_file.filename is '':
-                error = 'Test file has no name'
-            
-            if error is None:
-                box_info = (title, description, difficulty, datetime.datetime.now(), 
-                            expiration_date, payout)
-
-                box_contract_id = db.insert_box_contract(box_info)
-
-                box_contract_files_folder = 'files/' + str(box_contract_id) + '_files'
-                os.makedirs(box_contract_files_folder)
-
-                if uploaded_file.filename != '':
-                    uploaded_file.save(box_contract_files_folder + '/test.java')
-
-                return redirect(url_for('table'))
-            
-            flash(error)
-
-        return render_template('form.html')
+    @app.route('/create', methods=('GET', 'POST'))
+    def create():
+        return form.create_contract_view(request)
 
     @app.route('/table')
     def table():
-        return render_template('basicTable.html', box_contracts=db.get_box_contracts())
+        return render_template('basicTable.html',
+                               contracts=db.get_contracts())
 
     @app.route('/table/<int:id>', methods=('GET', 'POST'))
-    def view_contract(id):
+    def viewContract(id):
+        return form.show_contract_view(id, request)
 
-        if request.method == 'POST':
-            uploaded_file = request.files['file']
-            contract_files_dir = 'files/' + str(id) + '_files'
-
-            error = None
-
-            if not uploaded_file:
-                error = 'Attempt file is required'
-            elif not allowed_file(uploaded_file.filename):
-                error = 'Attempt file is not a Java file'
-            elif uploaded_file.filename is '':
-                error = 'Attempt file has no name'
-            elif not os.path.isdir(contract_files_dir):
-                error = '{Internal Error} Contract does not have file directory'
-            
-            if error is None:
-                uploaded_file.save(contract_files_dir + '/attempt.java')
-                flash('Success!')
-            
-            else:
-                flash(error)
-
-        return render_template('contractView.html', box_contract=db.get_box_contract(id))
-
-    @app.route('/addBoxContracts', methods = ['POST'])
-    def add_box_contracts():
+    """
+    Helper Endpoints
+    """
+    @app.route('/addContracts', methods=['POST'])
+    def addContracts():
         body = request.get_json(force=True)
-        box_contracts = body["box_contracts"]
-        for box_contract in box_contracts:
-            box_contract[3] = datetime.datetime.now()
-            box_contract[4] = datetime.datetime.now()
-            db.insert_box_contract(box_contract)
+        contracts = body["contracts"]
+        for contract in contracts:
+            contract[3] = datetime.datetime.now()
+            contract[4] = datetime.datetime.now()
+            db.insert_contract(contract)
 
         return "inserted contracts"
 
-    @app.route('/printBoxContracts')
-    def print_box_contracts():
-        return db.print_box_contract_table()
+    @app.route('/printContracts')
+    def printContracts():
+        return db.print_contract_table()
 
     @app.route('/test')
     def test():
-        return str(db.get_box_contracts())
+        return str(db.get_contracts())
 
     db.init_app(app)
 
-    # from . import auth
-    # app.register_blueprint(auth.bp)
-
-    # from . import blog
-    # app.register_blueprint(blog.bp)
-    # app.add_url_rule('/', endpoint='index')
-
     return app
+
 
 if __name__ == "__main__":
     app = create_app()

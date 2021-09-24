@@ -10,7 +10,7 @@ table, th, td {
 <h2>Box Table</h2>
 
 <p>
-  <a href="{{url_for('form')}}">Create a Box</a>
+  <a href="{{url_for('create')}}">Create a Box</a>
 </p>
 
 <table style="width:100%">
@@ -23,15 +23,15 @@ table, th, td {
     <th>Payout</th>
     <th>Link</th>
   </tr>
-{% for box in box_contracts %}
+{% for contract in contracts %}
   <tr>
-    <td>{{ box[0] }}</td>
-    <td>{{ box[1] }}</td>
-    <td>{{ box[3] }}</td>
-    <td>{{ box[4] }}</td>
-    <td>{{ box[5] }}</td>
-    <td>{{ box[6] }}</td>
-    <td><a href="{{url_for('view_contract', id=box[0])}}">Open</a></td>
+    <td>{{ contract[0] }}</td>
+    <td>{{ contract[1] }}</td>
+    <td>{{ contract[3] }}</td>
+    <td>{{ contract[4] }}</td>
+    <td>{{ contract[5] }}</td>
+    <td>{{ contract[6] }}</td>
+    <td><a href="{{url_for('viewContract', id=contract[0])}}">Open</a></td>
   </tr>
 {% endfor %}
 </table>

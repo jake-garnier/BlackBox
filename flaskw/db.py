@@ -6,14 +6,13 @@ from flask.cli import with_appcontext
 import shutil
 import os
 
+
 def get_db():
     if 'db' not in g:
-        
         g.db = sqlite3.connect(
             current_app.config['DATABASE'],
             detect_types=sqlite3.PARSE_DECLTYPES
         )
-        
         g.db.row_factory = sqlite3.Row
 
     return g.db
@@ -53,44 +52,46 @@ Start of db manipulation functions
 """
 
 """
-Inserts an box contract into the box contract table
-@arg box_info: (title, descript, difficulty, creation_date, expiration_date, payout)
+Inserts an contract into the contract table
+@arg contract_info: (title, descript, difficulty,
+                     creation_date, expiration_date, payout)
 """
-def insert_box_contract(box_info):
+def insert_contract(contract_info):
     db = get_db()
     cursor = db.cursor()
     cursor.execute(
-        'INSERT INTO box_contract (title, descript, difficulty, \
+        'INSERT INTO contracts (title, descript, difficulty, \
         creation_date, expiration_date, payout) VALUES (?, ?, ?, ?, ?, ?)',
-        box_info
+        contract_info
     )
     db.commit()
 
     return cursor.lastrowid
-    
 
-def get_box_contract(id):
+
+def get_contract(id):
     db = get_db()
     return db.execute(
-        'SELECT * from box_contract WHERE id = ?', (id, )
+        'SELECT * from contracts WHERE id = ?', (id, )
     ).fetchone()
 
-def print_box_contract_table():
+def print_contract_table():
     db = get_db()
-    box_contracts = db.execute('SELECT * FROM box_contract').fetchall()
+    contracts = db.execute('SELECT * FROM contracts').fetchall()
 
     ret = list()
-    for box_contract in box_contracts:
-        ret.append((list(box_contract)[0], list(box_contract)[1]))
+    for contract in contracts:
+        ret.append((list(contract)[0], list(contract)[1]))
 
     return str(ret)
 
-def get_box_contracts():
+def get_contracts():
     db = get_db()
-    box_contracts = db.execute('SELECT * FROM box_contract').fetchall()
+    contracts = db.execute('SELECT * FROM contracts').fetchall()
     
     ret = list()
-    for box_contract in box_contracts:
-        ret.append(list(box_contract))
+    for contract in contracts:
+        ret.append(list(contract))
 
     return ret
+    

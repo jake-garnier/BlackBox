@@ -6,14 +6,14 @@
   <div class="flash">{{ message }}</div>
 {% endfor %}
 
-<h2>Box Contract</h2>
+<h2>Contract</h2>
 
-<p>ID: {{ box_contract[0] }}</p>
-<p>Title: {{ box_contract[1] }}</p>
-<p>Difficulty: {{ box_contract[3] }}</p>
-<p>Created: {{ box_contract[4] }}</p>
-<p>Expires: {{ box_contract[5] }}</p>
-<p>Payout: {{ box_contract[6] }}</p>
+<p>ID: {{ contract[0] }}</p>
+<p>Title: {{ contract[1] }}</p>
+<p>Difficulty: {{ contract[3] }}</p>
+<p>Created: {{ contract[4] }}</p>
+<p>Expires: {{ contract[5] }}</p>
+<p>Payout: {{ contract[6] }}</p>
 
 <form method="post" enctype="multipart/form-data">
   <p><input type="file" name="file"></p>
