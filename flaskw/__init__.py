@@ -4,6 +4,10 @@ import flaskw.form as form
 from flask import Flask, request, render_template, redirect, url_for, flash
 import datetime
 
+import boto3
+import json
+import yaml
+
 # export FLASK_APP=flaskw && export FLASK_ENV=development
 # flask run
 
@@ -66,8 +70,40 @@ def create_app(test_config=None):
 
     @app.route('/test')
     def test():
-        return str(db.get_contracts())
+        lam_client = boto3.client('lambda')
+        iam_client = boto3.client('iam')
 
+        # basic_role = """
+        # Version: '2012-10-17'
+        # Statement:
+        #     - Effect: Allow
+        #       Principal: 
+        #         Service: lambda.amazonaws.com
+        #       Action: sts:AssumeRole
+        # """
+
+        # # lambda.awazonaws.com can assume this role. 
+        # iam_client.create_role(RoleName='test_role2', 
+        #     AssumeRolePolicyDocument=json.dumps(yaml.load(basic_role)))
+
+        # # This role has the AWSLambdaBasicExecutionRole managed policy.
+        # iam_client.attach_role_policy(RoleName='test_role2', 
+        #     PolicyArn='arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole')
+
+
+        path = os.path.abspath(os.getcwd())
+
+        with open(path + '/flaskw/test.zip', 'rb') as f: 
+            code = f.read()
+
+        role = iam_client.get_role(RoleName='test_role')
+        return lam_client.create_function(
+            FunctionName='test_lambda',
+            Runtime='python3.7',
+            Role=role['Role']['Arn'],
+            Handler='test.lambda_handler',
+            Code={'ZipFile':code})
+        
     db.init_app(app)
 
     return app
