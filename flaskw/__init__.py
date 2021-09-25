@@ -73,14 +73,14 @@ def create_app(test_config=None):
         lam_client = boto3.client('lambda')
         iam_client = boto3.client('iam')
 
-        # basic_role = """
-        # Version: '2012-10-17'
-        # Statement:
-        #     - Effect: Allow
-        #       Principal: 
-        #         Service: lambda.amazonaws.com
-        #       Action: sts:AssumeRole
-        # """
+        basic_role = """
+        Version: '2012-10-17'
+        Statement:
+            - Effect: Allow
+              Principal: 
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        """
 
         # # lambda.awazonaws.com can assume this role. 
         # iam_client.create_role(RoleName='test_role2', 
