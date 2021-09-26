@@ -9,6 +9,9 @@ from zipfile import ZipFile
 from flaskw import db as db
 
 
+PYTHON_TESTING_TEMPLATE_PATH = 'flaskw/testingTemplates/pythonTestingTemplateLambda.py'
+PYTHON_TESTING_TEMPLATE_NAME = 'pythonTestingTemplateLambda.py'
+
 def create_lambda_executer_iam_user():
     iam_client = boto3.client('iam')
 
@@ -46,14 +49,33 @@ def create_lambda(contract_id, attempt_id, contract_files_dir):
     zipObj = ZipFile(str(attempt_id) + '.zip', 'w')
     zipObj.write(contract_files_dir + '/' + test_file, test_file)
     zipObj.write(contract_files_dir + '/' + str(attempt_id) + '/' + attempt_file, attempt_file)
+    # zipObj.write(PYTHON_TESTING_TEMPLATE_PATH, PYTHON_TESTING_TEMPLATE_NAME)
     zipObj.close()
 
     with open(str(attempt_id) + '.zip', 'rb') as f: 
         code = f.read()
 
-    return lam_client.create_function(
+    lam_client.create_function(
         FunctionName=str(attempt_id) + '_lambda',
         Runtime='python3.7',
         Role=role['Role']['Arn'],
-        Handler= test_file.rsplit('.', 1)[0] + '.lambda_handler',
+        Handler= test_file.rsplit('.', 1)[0] + '.main_test',
         Code={'ZipFile':code})
+
+    os.remove(str(attempt_id) + '.zip')
+
+def execute_lambda(attempt_id):
+    lam_client = boto3.client('lambda')
+
+    return lam_client.invoke(
+        FunctionName=str(attempt_id) + '_lambda',
+        InvocationType='RequestResponse',
+        LogType='Tail',
+    )
+
+def delete_lambda(attempt_id):
+    lam_client = boto3.client('lambda')
+
+    return lam_client.delete_function(
+        FunctionName=str(attempt_id) + '_lambda',
+    )

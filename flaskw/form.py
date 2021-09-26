@@ -1,5 +1,6 @@
 import os
 import datetime
+import base64
 from flaskw import db as db
 from flaskw import aws as aws
 from flask import flash, render_template, redirect, url_for
@@ -38,7 +39,18 @@ def show_contract_view(contract_id, request):
 
             aws.create_lambda(contract_id, attempt_id, contract_files_dir)
 
+            response = aws.execute_lambda(attempt_id)
+            payload = str(response["Payload"].read())
+
+            logs_bytes = response['LogResult'].encode('ascii')
+            logs_base64_bytes = base64.b64decode(logs_bytes)
+            logs = logs_base64_bytes.decode('ascii')
+
+            aws.delete_lambda(attempt_id)
+
             flash('Success!')
+
+            return logs
 
         else:
             flash(error)
