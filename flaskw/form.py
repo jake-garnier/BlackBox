@@ -16,6 +16,7 @@ def allowed_file(filename):
 def show_contract_view(contract_id, request):
     if request.method == 'POST':
         uploaded_file = request.files['file']
+        uploaded_file_extension = uploaded_file.filename.rsplit('.', 1)[1].lower()
         contract_files_dir = 'files/' + str(contract_id) + '_files'
 
         error = None
@@ -30,12 +31,12 @@ def show_contract_view(contract_id, request):
             error = '{Internal Error} Contract does not have file directory'
 
         if error is None:
-            attempt_id = db.insert_attempt((contract_id, 'attempt_' + uploaded_file.filename))
+            attempt_id = db.insert_attempt((contract_id, 'attempt.' + uploaded_file_extension))
 
             contract_path = contract_files_dir + '/' + str(attempt_id)
 
             os.makedirs(contract_files_dir + '/' + str(attempt_id))
-            uploaded_file.save(contract_path + '/' + 'attempt_' + uploaded_file.filename)
+            uploaded_file.save(contract_path + '/' + 'attempt.' + uploaded_file_extension)
 
             aws.create_lambda(contract_id, attempt_id, contract_files_dir)
 
@@ -67,6 +68,7 @@ def create_contract_view(request):
         expiration_date = request.form['expiration_date']
         payout = request.form['payout']
         uploaded_file = request.files['file']
+        uploaded_file_extension = uploaded_file.filename.rsplit('.', 1)[1].lower()
 
         error = None
 
@@ -90,7 +92,7 @@ def create_contract_view(request):
         if error is None:
             contract_info = (title, description, difficulty,
                              datetime.datetime.now(), expiration_date,
-                             payout, 'test_' + uploaded_file.filename)
+                             payout, 'test.' + uploaded_file_extension)
 
             contract_id = db.insert_contract(contract_info)
 
@@ -98,7 +100,7 @@ def create_contract_view(request):
             os.makedirs(contract_files_folder)
 
             if uploaded_file.filename != '':
-                uploaded_file.save(contract_files_folder + '/' + 'test_' + uploaded_file.filename)
+                uploaded_file.save(contract_files_folder + '/' + 'test.' + uploaded_file_extension)
 
             return redirect(url_for('table'))
 

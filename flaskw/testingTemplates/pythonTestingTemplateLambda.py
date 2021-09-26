@@ -2,4 +2,4 @@ import unittest
 
 
 def lambda_handler(event, context):
-    unittest.main(module='test', exit=False)
+    unittest.main(module='test', exit=False, verbosity=2)

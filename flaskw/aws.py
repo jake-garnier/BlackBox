@@ -11,6 +11,7 @@ from flaskw import db as db
 
 PYTHON_TESTING_TEMPLATE_PATH = 'flaskw/testingTemplates/pythonTestingTemplateLambda.py'
 PYTHON_TESTING_TEMPLATE_NAME = 'pythonTestingTemplateLambda.py'
+PYTHON_TESTING_TEMPLATE_HANDLER_PATH = 'pythonTestingTemplateLambda.lambda_handler'
 
 def create_lambda_executer_iam_user():
     iam_client = boto3.client('iam')
@@ -49,7 +50,7 @@ def create_lambda(contract_id, attempt_id, contract_files_dir):
     zipObj = ZipFile(str(attempt_id) + '.zip', 'w')
     zipObj.write(contract_files_dir + '/' + test_file, test_file)
     zipObj.write(contract_files_dir + '/' + str(attempt_id) + '/' + attempt_file, attempt_file)
-    # zipObj.write(PYTHON_TESTING_TEMPLATE_PATH, PYTHON_TESTING_TEMPLATE_NAME)
+    zipObj.write(PYTHON_TESTING_TEMPLATE_PATH, PYTHON_TESTING_TEMPLATE_NAME)
     zipObj.close()
 
     with open(str(attempt_id) + '.zip', 'rb') as f: 
@@ -59,7 +60,7 @@ def create_lambda(contract_id, attempt_id, contract_files_dir):
         FunctionName=str(attempt_id) + '_lambda',
         Runtime='python3.7',
         Role=role['Role']['Arn'],
-        Handler= test_file.rsplit('.', 1)[0] + '.main_test',
+        Handler=PYTHON_TESTING_TEMPLATE_HANDLER_PATH,
         Code={'ZipFile':code})
 
     os.remove(str(attempt_id) + '.zip')
