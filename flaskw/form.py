@@ -1,9 +1,10 @@
 import os
 import datetime
-import flaskw.db as db
+from flaskw import db as db
+from flaskw import aws as aws
 from flask import flash, render_template, redirect, url_for
 
-ALLOWED_EXTENSIONS = {'java'}
+ALLOWED_EXTENSIONS = {'java', 'zip', 'py'}
 
 
 def allowed_file(filename):
@@ -11,10 +12,10 @@ def allowed_file(filename):
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def show_contract_view(id, request):
+def show_contract_view(contract_id, request):
     if request.method == 'POST':
         uploaded_file = request.files['file']
-        contract_files_dir = 'files/' + str(id) + '_files'
+        contract_files_dir = 'files/' + str(contract_id) + '_files'
 
         error = None
 
@@ -28,14 +29,22 @@ def show_contract_view(id, request):
             error = '{Internal Error} Contract does not have file directory'
 
         if error is None:
-            uploaded_file.save(contract_files_dir + '/attempt.java')
+            attempt_id = db.insert_attempt((contract_id, 'attempt_' + uploaded_file.filename))
+
+            contract_path = contract_files_dir + '/' + str(attempt_id)
+
+            os.makedirs(contract_files_dir + '/' + str(attempt_id))
+            uploaded_file.save(contract_path + '/' + 'attempt_' + uploaded_file.filename)
+
+            aws.create_lambda(contract_id, attempt_id, contract_files_dir)
+
             flash('Success!')
 
         else:
             flash(error)
 
     return render_template('contractView.html',
-                           contract=db.get_contract(id))
+                           contract=db.get_contract(contract_id))
 
 
 def create_contract_view(request):
@@ -68,8 +77,8 @@ def create_contract_view(request):
 
         if error is None:
             contract_info = (title, description, difficulty,
-                             datetime.datetime.now(),
-                             expiration_date, payout)
+                             datetime.datetime.now(), expiration_date,
+                             payout, 'test_' + uploaded_file.filename)
 
             contract_id = db.insert_contract(contract_info)
 
@@ -77,7 +86,7 @@ def create_contract_view(request):
             os.makedirs(contract_files_folder)
 
             if uploaded_file.filename != '':
-                uploaded_file.save(contract_files_folder + '/test.java')
+                uploaded_file.save(contract_files_folder + '/' + 'test_' + uploaded_file.filename)
 
             return redirect(url_for('table'))
 

@@ -52,17 +52,32 @@ Start of db manipulation functions
 """
 
 """
-Inserts an contract into the contract table
+Inserts an contract into the contracts table
 @arg contract_info: (title, descript, difficulty,
-                     creation_date, expiration_date, payout)
+                     creation_date, expiration_date, payout, test_filename)
 """
 def insert_contract(contract_info):
     db = get_db()
     cursor = db.cursor()
     cursor.execute(
         'INSERT INTO contracts (title, descript, difficulty, \
-        creation_date, expiration_date, payout) VALUES (?, ?, ?, ?, ?, ?)',
+        creation_date, expiration_date, payout, test_filename) VALUES (?, ?, ?, ?, ?, ?, ?)',
         contract_info
+    )
+    db.commit()
+
+    return cursor.lastrowid
+
+"""
+Inserts an attempt into the attempts table
+@arg attempt_info: (contract_id, attempt_filename)
+"""
+def insert_attempt(attempt_info):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute(
+        'INSERT INTO attempts (contract_id, attempt_filename) VALUES (?, ?)',
+        attempt_info
     )
     db.commit()
 
@@ -73,6 +88,12 @@ def get_contract(id):
     db = get_db()
     return db.execute(
         'SELECT * from contracts WHERE id = ?', (id, )
+    ).fetchone()
+
+def get_attempt(id):
+    db = get_db()
+    return db.execute(
+        'SELECT * from attempts WHERE id = ?', (id, )
     ).fetchone()
 
 def print_contract_table():
