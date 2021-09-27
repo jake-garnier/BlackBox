@@ -15,5 +15,8 @@ CREATE TABLE contracts (
 CREATE TABLE attempts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     contract_id INTEGER NOT NULL,
-    attempt_filename TEXT NOT NULL
+    attempt_filename TEXT NOT NULL,
+    ran BOOLEAN,
+    success BOOLEAN,
+    failed_tests TEXT
 );

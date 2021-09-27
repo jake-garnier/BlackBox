@@ -1,6 +1,7 @@
 import os
 import datetime
 import base64
+import json
 from flaskw import db as db
 from flaskw import aws as aws
 from flask import flash, render_template, redirect, url_for
@@ -41,7 +42,7 @@ def show_contract_view(contract_id, request):
             aws.create_lambda(contract_id, attempt_id, contract_files_dir)
 
             response = aws.execute_lambda(attempt_id)
-            payload = str(response["Payload"].read())
+            payload = json.loads(response["Payload"].read())
 
             logs_bytes = response['LogResult'].encode('ascii')
             logs_base64_bytes = base64.b64decode(logs_bytes)
@@ -49,15 +50,21 @@ def show_contract_view(contract_id, request):
 
             aws.delete_lambda(attempt_id)
 
-            flash('Success!')
+            success = len(payload['failed_test_names']) == 0
+            db.add_result_to_attempt(attempt_id, str(payload['failed_test_names']), success)
 
-            return logs
+            for test_name in payload['failed_test_names']:
+                flash(test_name + ' FAIL')
+
+            if success:
+                flash('Success!')
 
         else:
             flash(error)
 
     return render_template('contractView.html',
-                           contract=db.get_contract(contract_id))
+                           contract=db.get_contract(contract_id),
+                           attempts=db.get_contracts_attempts(contract_id))
 
 
 def create_contract_view(request):

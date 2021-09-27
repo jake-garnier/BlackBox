@@ -83,6 +83,21 @@ def insert_attempt(attempt_info):
 
     return cursor.lastrowid
 
+def add_result_to_attempt(attempt_id, failed_tests, success):
+    db = get_db()
+    db.execute(
+        'UPDATE attempts SET ran = 1 WHERE id = ?',
+        (attempt_id, )
+    )
+    db.execute(
+        'UPDATE attempts SET failed_tests = ? WHERE id = ?',
+        (failed_tests, attempt_id)
+    )
+    db.execute(
+        'UPDATE attempts SET success = ? WHERE id = ?',
+        (success, attempt_id)
+    )
+    db.commit()
 
 def get_contract(id):
     db = get_db()
@@ -116,3 +131,15 @@ def get_contracts():
 
     return ret
     
+def get_contracts_attempts(contract_id):
+    db = get_db()
+    attempts = db.execute(
+        'SELECT * FROM attempts WHERE contract_id = ?',
+        (contract_id, )
+    )
+
+    ret = list()
+    for attempt in attempts:
+        ret.append(list(attempt))
+    
+    return ret

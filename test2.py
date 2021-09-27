@@ -1,4 +1,4 @@
 import unittest
 
 if __name__ == "__main__":
-    unittest.main(module='test', verbosity=2)
+    print(unittest.main(module='test', verbosity=2, exit=False).result.failures)

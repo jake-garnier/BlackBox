@@ -1,5 +1,10 @@
 <!DOCTYPE html>
 <html>
+<style>
+  table, th, td {
+    border:1px solid black;
+  }
+  </style>
 <body>
 
 {% for message in get_flashed_messages() %}
@@ -19,6 +24,27 @@
   <p><input type="file" name="file"></p>
   <p><input type="submit" value="Attempt"></p>
 </form>
+
+<table style="width:100%">
+  <tr>
+    <th>ID</th>
+    <th>Contract ID/th>
+    <th>Filename</th>
+    <th>Ran</th>
+    <th>Success</th>
+    <th>Failed Tests</th>
+  </tr>
+{% for attempt in attempts %}
+  <tr>
+    <td>{{ attempt[0] }}</td>
+    <td>{{ attempt[1] }}</td>
+    <td>{{ attempt[2] }}</td>
+    <td>{{ attempt[3] }}</td>
+    <td>{{ attempt[4] }}</td>
+    <td>{{ attempt[5] }}</td>
+  </tr>
+{% endfor %}
+</table>
 
 </body>
 </html>
