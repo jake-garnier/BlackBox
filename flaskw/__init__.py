@@ -1,7 +1,7 @@
 import os
 from flaskw import db as db
 from flaskw import form as form
-from flask import Flask, request, render_template, redirect, url_for, flash
+from flask import Flask, request, render_template, redirect, url_for, flash, session
 import datetime
 
 # export FLASK_APP=flaskw && export FLASK_ENV=development
@@ -40,11 +40,26 @@ def create_app(test_config=None):
     @app.route('/table')
     def table():
         return render_template('basicTable.html',
-                               contracts=db.get_contracts())
+                               contracts=db.get_contracts(),
+                               session=session)
 
     @app.route('/table/<int:id>', methods=('GET', 'POST'))
     def viewContract(id):
         return form.show_contract_view(id, request)
+
+    @app.route('/register', methods=('GET', 'POST'))
+    def register(): 
+        return form.register_user_view(request)
+
+    @app.route('/login', methods=('GET', 'POST'))
+    def login():
+        return form.login_user_view(request)
+
+    @app.route('/logout')
+    def logout():
+        session.clear()
+        return redirect(url_for('table'))
+
 
     """
     Helper Endpoints

@@ -1,5 +1,6 @@
 DROP TABLE IF EXISTS contracts;
 DROP TABLE IF EXISTS attempts;
+DROP TABLE IF EXISTS user;
 
 CREATE TABLE contracts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -19,4 +20,10 @@ CREATE TABLE attempts (
     ran BOOLEAN,
     success BOOLEAN,
     failed_tests TEXT
+);
+
+CREATE TABLE user (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL
 );

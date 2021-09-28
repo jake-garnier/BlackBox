@@ -5,6 +5,7 @@ from flask import current_app, g
 from flask.cli import with_appcontext
 import shutil
 import os
+from sqlite3 import IntegrityError
 
 
 def get_db():
@@ -81,6 +82,15 @@ def insert_attempt(attempt_info):
     )
     db.commit()
 
+def insert_user(user_info):
+    db = get_db()
+    cursor = db.cursor()
+    db.execute(
+        "INSERT INTO user (username, password) VALUES (?, ?)",
+        user_info,
+    )
+    db.commit()
+
     return cursor.lastrowid
 
 def add_result_to_attempt(attempt_id, failed_tests, success):
@@ -109,6 +119,12 @@ def get_attempt(id):
     db = get_db()
     return db.execute(
         'SELECT * from attempts WHERE id = ?', (id, )
+    ).fetchone()
+
+def get_user(username):
+    db = get_db()
+    return db.execute(
+        'SELECT * FROM user WHERE username = ?', (username,)
     ).fetchone()
 
 def print_contract_table():

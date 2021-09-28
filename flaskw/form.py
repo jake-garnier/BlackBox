@@ -4,7 +4,9 @@ import base64
 import json
 from flaskw import db as db
 from flaskw import aws as aws
-from flask import flash, render_template, redirect, url_for
+from flask import flash, render_template, redirect, url_for, session
+from werkzeug.security import check_password_hash, generate_password_hash
+from sqlite3 import IntegrityError
 
 ALLOWED_EXTENSIONS = {'java', 'zip', 'py'}
 
@@ -114,3 +116,50 @@ def create_contract_view(request):
         flash(error)
 
     return render_template('form.html')
+
+def register_user_view(request):
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        error = None
+
+        if not username:
+            error = 'Username is required.'
+        elif not password:
+            error = 'Password is required.'
+
+        if error is None:
+            try:
+                db.insert_user((username, generate_password_hash(password)))
+            except db.IntegrityError:
+                error = f"User {username} is already registered."
+            else:
+                return redirect(url_for("login"))
+
+        flash(error)
+
+    return render_template('register.html')
+
+def login_user_view(request):
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        error = None
+
+        user = db.get_user(username)
+
+        if user is None:
+            error = 'Incorrect username.'
+        elif not check_password_hash(user['password'], password):
+            error = 'Incorrect password.'
+
+        if error is None:
+            session.clear()
+            session['user_id'] = user['id']
+            return redirect(url_for('table'))
+
+        flash(error)
+        
+    return render_template('login.html')
