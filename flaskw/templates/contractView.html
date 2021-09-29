@@ -25,10 +25,35 @@
   <p><input type="submit" value="Attempt"></p>
 </form>
 
+<h2>Total Attempts</h2>
+
 <table style="width:100%">
   <tr>
     <th>ID</th>
-    <th>Contract ID/th>
+    <th>Contract ID</th>
+    <th>Filename</th>
+    <th>Ran</th>
+    <th>Success</th>
+    <th>Failed Tests</th>
+  </tr>
+{% for attempt in attempts %}
+  <tr>
+    <td>{{ attempt[0] }}</td>
+    <td>{{ attempt[1] }}</td>
+    <td>{{ attempt[2] }}</td>
+    <td>{{ attempt[3] }}</td>
+    <td>{{ attempt[4] }}</td>
+    <td>{{ attempt[5] }}</td>
+  </tr>
+{% endfor %}
+</table>
+
+<h2>Your Attempts</h2>
+
+<table style="width:100%">
+  <tr>
+    <th>ID</th>
+    <th>Contract ID</th>
     <th>Filename</th>
     <th>Ran</th>
     <th>Success</th>

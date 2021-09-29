@@ -62,7 +62,8 @@ def insert_contract(contract_info):
     cursor = db.cursor()
     cursor.execute(
         'INSERT INTO contracts (title, descript, difficulty, \
-        creation_date, expiration_date, payout, test_filename) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        creation_date, expiration_date, creater_user_id, payout, test_filename) \
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
         contract_info
     )
     db.commit()
@@ -71,16 +72,18 @@ def insert_contract(contract_info):
 
 """
 Inserts an attempt into the attempts table
-@arg attempt_info: (contract_id, attempt_filename)
+@arg attempt_info: (contract_id, creater_user_id, attempt_filename)
 """
 def insert_attempt(attempt_info):
     db = get_db()
     cursor = db.cursor()
     cursor.execute(
-        'INSERT INTO attempts (contract_id, attempt_filename) VALUES (?, ?)',
+        'INSERT INTO attempts (contract_id, creater_user_id, attempt_filename) VALUES (?, ?, ?)',
         attempt_info
     )
     db.commit()
+    
+    return cursor.lastrowid
 
 def insert_user(user_info):
     db = get_db()

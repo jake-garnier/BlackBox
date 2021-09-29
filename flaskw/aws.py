@@ -44,8 +44,8 @@ def create_lambda(contract_id, attempt_id, contract_files_dir):
     
     path = os.path.abspath(os.getcwd())
 
-    test_file = db.get_contract(contract_id)[7]
-    attempt_file = db.get_attempt(attempt_id)[2]
+    test_file = db.get_contract(contract_id)[8]
+    attempt_file = db.get_attempt(attempt_id)[3]
 
     zipObj = ZipFile(str(attempt_id) + '.zip', 'w')
     zipObj.write(contract_files_dir + '/' + test_file, test_file)

@@ -24,7 +24,10 @@ def show_contract_view(contract_id, request):
 
         error = None
 
-        if not uploaded_file:
+        if 'user_id' not in session:
+            flash('Please log in or register before creating a contract')
+            return redirect(url_for('login'))
+        elif not uploaded_file:
             error = 'Attempt file is required'
         elif not allowed_file(uploaded_file.filename):
             error = 'Attempt file is not a Java file'
@@ -34,7 +37,8 @@ def show_contract_view(contract_id, request):
             error = '{Internal Error} Contract does not have file directory'
 
         if error is None:
-            attempt_id = db.insert_attempt((contract_id, 'attempt.' + uploaded_file_extension))
+            attempt_info = (contract_id, session['user_id'], 'attempt.' + uploaded_file_extension)
+            attempt_id = db.insert_attempt(attempt_info)
 
             contract_path = contract_files_dir + '/' + str(attempt_id)
 
@@ -81,7 +85,10 @@ def create_contract_view(request):
 
         error = None
 
-        if not title:
+        if 'user_id' not in session:
+            flash('Please log in or register before creating a contract')
+            return redirect(url_for('login'))
+        elif not title:
             error = 'Title is required'
         elif not description:
             error = 'Description is required'
@@ -101,7 +108,7 @@ def create_contract_view(request):
         if error is None:
             contract_info = (title, description, difficulty,
                              datetime.datetime.now(), expiration_date,
-                             payout, 'test.' + uploaded_file_extension)
+                             session['user_id'], payout, 'test.' + uploaded_file_extension)
 
             contract_id = db.insert_contract(contract_info)
 

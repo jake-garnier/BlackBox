@@ -9,6 +9,7 @@ CREATE TABLE contracts (
     difficulty INTEGER NOT NULL,
     creation_date DATETIME NOT NULL,
     expiration_date DATETIME NOT NULL,
+    creater_user_id INTEGER NOT NULL,
     payout INTEGER NOT NULL,
     test_filename TEXT NOT NULL
 );
@@ -16,6 +17,7 @@ CREATE TABLE contracts (
 CREATE TABLE attempts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     contract_id INTEGER NOT NULL,
+    creater_user_id INTEGER NOT NULL,
     attempt_filename TEXT NOT NULL,
     ran BOOLEAN,
     success BOOLEAN,
