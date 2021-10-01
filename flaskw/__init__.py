@@ -47,6 +47,11 @@ def create_app(test_config=None):
     def viewContract(id):
         return form.show_contract_view(id, request)
 
+    @app.route('/delete/<int:id>', methods=('GET', 'POST'))
+    def deleteContract(id):
+        db.delete_contract(id)
+        return redirect(url_for('table'))
+
     @app.route('/register', methods=('GET', 'POST'))
     def register(): 
         return form.register_user_view(request)

@@ -37,6 +37,7 @@ table, th, td {
     <th>Creater Id</th>
     <th>Payout</th>
     <th>Link</th>
+    <th>Delete</th>
   </tr>
 {% for contract in contracts %}
   <tr>
@@ -48,6 +49,9 @@ table, th, td {
     <td>{{ contract[6] }}</td>
     <td>{{ contract[7] }}</td>
     <td><a href="{{url_for('viewContract', id=contract[0])}}">Open</a></td>
+    {% if session['user_id'] == contract[6] %}
+      <td><a href="{{url_for('deleteContract', id=contract[0])}}">Delete</a></td>
+    {% endif %}
   </tr>
 {% endfor %}
 </table>
