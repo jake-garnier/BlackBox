@@ -4,7 +4,7 @@ import json
 class TestStringMethods(unittest.TestCase):
 
     def test_test_func(self):
-        self.assertEquals('test1', test_func('test'))
+        self.assertEquals('test', test_func('test'))
 
     def test_upper(self):
         self.assertNotEqual('foo'.upper(), 'FOO')

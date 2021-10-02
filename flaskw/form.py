@@ -37,8 +37,6 @@ def show_contract_view(contract_id, request):
             error = 'Attempt file has no name'
         elif not os.path.isdir(contract_files_dir):
             error = '{Internal Error} Contract does not have file directory'
-        # elif not callable(getattr(attempt_module,'test_func')) :
-        #     error = 'Function name entered is not callable in your input file'
 
         if error is None:
             attempt_info = (contract_id, session['user_id'], 'attempt.' + uploaded_file_extension, function_name)
@@ -57,6 +55,7 @@ def show_contract_view(contract_id, request):
                 test_func = getattr(attempt_test, function_name)
                 if not callable(test_func):
                     error = 'Function name: ' + function_name + ' is not callable in your inputed file'
+                
             except AttributeError:
                 error = 'Function name: ' + function_name + ' is not in your inputed file'
 
@@ -70,7 +69,7 @@ def show_contract_view(contract_id, request):
                 logs_base64_bytes = base64.b64decode(logs_bytes)
                 logs = logs_base64_bytes.decode('ascii')
 
-                # aws.delete_lambda(attempt_id)
+                aws.delete_lambda(attempt_id)
 
                 success = len(payload['failed_test_names']) == 0
                 db.add_result_to_attempt(attempt_id, str(payload['failed_test_names']), success)

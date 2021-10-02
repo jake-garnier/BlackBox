@@ -8,6 +8,8 @@ from zipfile import ZipFile
 
 from flaskw import db as db
 
+import shutil
+
 
 PYTHON_TESTING_TEMPLATE_PATH = 'flaskw/testingTemplates/pythonTestingTemplateLambda.py'
 PYTHON_TESTING_TEMPLATE_NAME = 'pythonTestingTemplateLambda.py'
@@ -45,10 +47,16 @@ def create_lambda(contract_id, attempt_id, contract_files_dir):
     path = os.path.abspath(os.getcwd())
 
     test_file = db.get_contract(contract_id)[8]
-    attempt_file = db.get_attempt(attempt_id)[3]
+
+    attempt = db.get_attempt(attempt_id)
+    attempt_file = attempt[3]
+    attempt_function_name = attempt[7]
+
+    shutil.copyfile(contract_files_dir + '/' + test_file, contract_files_dir + '/tmp')
+    line_prepender(contract_files_dir + '/tmp', 'from attempt import ' + attempt_function_name)
 
     zipObj = ZipFile(str(attempt_id) + '.zip', 'w')
-    zipObj.write(contract_files_dir + '/' + test_file, test_file)
+    zipObj.write(contract_files_dir + '/tmp', test_file)
     zipObj.write(contract_files_dir + '/' + str(attempt_id) + '/' + attempt_file, attempt_file)
     zipObj.write(PYTHON_TESTING_TEMPLATE_PATH, PYTHON_TESTING_TEMPLATE_NAME)
     zipObj.close()
@@ -90,3 +98,9 @@ def delete_lambda(attempt_id):
     return lam_client.delete_function(
         FunctionName=str(attempt_id) + '_lambda',
     )
+
+def line_prepender(filename, line):
+    with open(filename, 'r+') as f:
+        content = f.read()
+        f.seek(0, 0)
+        f.write(line.rstrip('\r\n') + '\n' + content)

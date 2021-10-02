@@ -3,6 +3,9 @@ import json
 
 class TestStringMethods(unittest.TestCase):
 
+    def test_test_func(self):
+        self.assertEqual('test', test_func('test'))
+
     def test_upper(self):
         self.assertNotEquals('foo'.upper(), 'FOO')
 
