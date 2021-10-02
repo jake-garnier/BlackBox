@@ -1,4 +1,3 @@
-
 import unittest
 import json
 
@@ -8,10 +7,10 @@ class TestStringMethods(unittest.TestCase):
         self.assertEquals('test1', test_func('test'))
 
     def test_upper(self):
-        self.assertEqual('foo'.upper(), 'FOO')
+        self.assertNotEqual('foo'.upper(), 'FOO')
 
     def test_isupper(self):
-        self.assertTrue('FOO'.isupper())
+        self.assertFalse('FOO'.isupper())
         self.assertFalse('Foo'.isupper())
 
     def test_split(self):

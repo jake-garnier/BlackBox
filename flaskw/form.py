@@ -4,6 +4,7 @@ import base64
 import json
 from flaskw import db as db
 from flaskw import aws as aws
+from flaskw import paypal as paypal
 from flask import flash, render_template, redirect, url_for, session
 from werkzeug.security import check_password_hash, generate_password_hash
 from sqlite3 import IntegrityError
@@ -81,9 +82,11 @@ def show_contract_view(contract_id, request):
                     flash('Success!')
             else:
                 flash(error)
+                db.delete_attempt(attempt_id)
 
         else:
             flash(error)
+
 
     return render_template('contractView.html',
                            contract=db.get_contract(contract_id),
@@ -123,6 +126,8 @@ def create_contract_view(request):
             error = 'Test file has no name'
 
         if error is None:
+            paypal.create_payment(payout)
+
             contract_info = (title, description, difficulty,
                              datetime.datetime.now(), expiration_date,
                              session['user_id'], payout, 'test.' + uploaded_file_extension)

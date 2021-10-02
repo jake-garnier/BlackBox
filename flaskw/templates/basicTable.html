@@ -7,6 +7,10 @@ table, th, td {
 </style>
 <body>
 
+{% for message in get_flashed_messages() %}
+<div class="flash">{{ message }}</div>
+{% endfor %}
+
 <h2>Box Table</h2>
 
 <p>User Id is {{ session['user_id'] }}</p>

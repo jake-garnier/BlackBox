@@ -76,20 +76,13 @@ def create_lambda(contract_id, attempt_id, contract_files_dir):
 def execute_lambda(attempt_id):
     lam_client = boto3.client('lambda')
 
-    # payload = """{
-    # "function_name": """ + db.get_attempt(attempt_id)[7] + """}"""
+    # payload = '{ "function_name": "' + db.get_attempt(attempt_id)[7] + '" }'
     # payload = str.encode(payload)
-
-    payload = '{ "function_name": "' + db.get_attempt(attempt_id)[7] + '" }'
-    payload = str.encode(payload)
-    # payload = b"""{
-    #     "function_name": """ + str.encode(b.get_attempt(attempt_id)[7] + b"""}"""
 
     return lam_client.invoke(
         FunctionName=str(attempt_id) + '_lambda',
         InvocationType='RequestResponse',
-        LogType='Tail',
-        Payload=payload
+        LogType='Tail'
     )
 
 def delete_lambda(attempt_id):

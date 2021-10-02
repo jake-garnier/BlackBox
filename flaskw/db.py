@@ -104,6 +104,14 @@ def delete_contract(contract_id):
     )
     db.commit()
 
+def delete_attempt(attempt_id):
+    db = get_db()
+    db.execute(
+        "DELETE FROM attempts WHERE id = ?",
+        (attempt_id, )
+    )
+    db.commit()
+
 def add_result_to_attempt(attempt_id, failed_tests, success):
     db = get_db()
     db.execute(

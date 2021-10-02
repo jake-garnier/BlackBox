@@ -4,6 +4,7 @@ from flaskw import form as form
 from flask import Flask, request, render_template, redirect, url_for, flash, session
 import datetime
 import importlib.util
+import paypalrestsdk
 
 # export FLASK_APP=flaskw && export FLASK_ENV=development
 # flask run
@@ -20,6 +21,11 @@ def create_app(test_config=None):
         SECRET_KEY='dev',
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
     )
+
+    paypalrestsdk.configure({
+        'mode': 'sandbox', #sandbox or live
+        'client_id': 'Ae25aMoBv7uZfZP0b3OG4_-W3ffiBuVU774srA0yYqq_8_MvbI4cV_fNsoDraE-vzP-_DxPg8NPl7Zye',
+        'client_secret': 'EE0KgZwfsx4VtLRj0DDhJzH8rw_uWw1Sb2F-VLUB3h0rGidtYF9suXh20NeelMnBG4iZFY7eEOcJsznn' })
 
     if test_config is None:
         # load the instance config, if it exists, when not testing

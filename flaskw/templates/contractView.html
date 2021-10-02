@@ -71,7 +71,7 @@
     <th>Function Name</th>
   </tr>
 {% for attempt in attempts %}
-  <tr>
+  {% if session['user_id'] == contract[2] %}
     <td>{{ attempt[0] }}</td>
     <td>{{ attempt[1] }}</td>
     <td>{{ attempt[2] }}</td>
@@ -80,7 +80,7 @@
     <td>{{ attempt[5] }}</td>
     <td>{{ attempt[6] }}</td>
     <td>{{ attempt[7] }}</td>
-  </tr>
+  {% endif %}
 {% endfor %}
 </table>
 
