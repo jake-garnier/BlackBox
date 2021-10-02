@@ -21,7 +21,8 @@ CREATE TABLE attempts (
     attempt_filename TEXT NOT NULL,
     ran BOOLEAN,
     success BOOLEAN,
-    failed_tests TEXT
+    failed_tests TEXT,
+    function_name TEXT NOT NULL
 );
 
 CREATE TABLE user (

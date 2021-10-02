@@ -22,6 +22,10 @@
 <p>Payout: {{ contract[7] }}</p>
 
 <form method="post" enctype="multipart/form-data">
+  <p>
+    <label for="function_name">Function Name</label>
+    <input name="function_name" id="function_name">
+  </p>
   <p><input type="file" name="file"></p>
   <p><input type="submit" value="Attempt"></p>
 </form>
@@ -37,6 +41,7 @@
     <th>Ran</th>
     <th>Success</th>
     <th>Failed Tests</th>
+    <th>Function Name</th>
   </tr>
 {% for attempt in attempts %}
   <tr>
@@ -47,6 +52,7 @@
     <td>{{ attempt[4] }}</td>
     <td>{{ attempt[5] }}</td>
     <td>{{ attempt[6] }}</td>
+    <td>{{ attempt[7] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -62,6 +68,7 @@
     <th>Ran</th>
     <th>Success</th>
     <th>Failed Tests</th>
+    <th>Function Name</th>
   </tr>
 {% for attempt in attempts %}
   <tr>
@@ -72,6 +79,7 @@
     <td>{{ attempt[4] }}</td>
     <td>{{ attempt[5] }}</td>
     <td>{{ attempt[6] }}</td>
+    <td>{{ attempt[7] }}</td>
   </tr>
 {% endfor %}
 </table>

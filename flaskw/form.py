@@ -7,6 +7,7 @@ from flaskw import aws as aws
 from flask import flash, render_template, redirect, url_for, session
 from werkzeug.security import check_password_hash, generate_password_hash
 from sqlite3 import IntegrityError
+import importlib.util
 
 ALLOWED_EXTENSIONS = {'java', 'zip', 'py'}
 
@@ -18,6 +19,7 @@ def allowed_file(filename):
 
 def show_contract_view(contract_id, request):
     if request.method == 'POST':
+        function_name = request.form['function_name']
         uploaded_file = request.files['file']
         uploaded_file_extension = uploaded_file.filename.rsplit('.', 1)[1].lower()
         contract_files_dir = 'files/' + str(contract_id) + '_files'
@@ -35,9 +37,11 @@ def show_contract_view(contract_id, request):
             error = 'Attempt file has no name'
         elif not os.path.isdir(contract_files_dir):
             error = '{Internal Error} Contract does not have file directory'
+        # elif not callable(getattr(attempt_module,'test_func')) :
+        #     error = 'Function name entered is not callable in your input file'
 
         if error is None:
-            attempt_info = (contract_id, session['user_id'], 'attempt.' + uploaded_file_extension)
+            attempt_info = (contract_id, session['user_id'], 'attempt.' + uploaded_file_extension, function_name)
             attempt_id = db.insert_attempt(attempt_info)
 
             contract_path = contract_files_dir + '/' + str(attempt_id)
@@ -45,25 +49,39 @@ def show_contract_view(contract_id, request):
             os.makedirs(contract_files_dir + '/' + str(attempt_id))
             uploaded_file.save(contract_path + '/' + 'attempt.' + uploaded_file_extension)
 
-            aws.create_lambda(contract_id, attempt_id, contract_files_dir)
+            spec = importlib.util.spec_from_file_location("attempt", contract_path + '/' + 'attempt.' + uploaded_file_extension)
+            attempt_test = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(attempt_test)
+            
+            try:
+                test_func = getattr(attempt_test, function_name)
+                if not callable(test_func):
+                    error = 'Function name: ' + function_name + ' is not callable in your inputed file'
+            except AttributeError:
+                error = 'Function name: ' + function_name + ' is not in your inputed file'
 
-            response = aws.execute_lambda(attempt_id)
-            payload = json.loads(response["Payload"].read())
+            if error is None:    
+                aws.create_lambda(contract_id, attempt_id, contract_files_dir)
 
-            logs_bytes = response['LogResult'].encode('ascii')
-            logs_base64_bytes = base64.b64decode(logs_bytes)
-            logs = logs_base64_bytes.decode('ascii')
+                response = aws.execute_lambda(attempt_id)
+                payload = json.loads(response["Payload"].read())
 
-            aws.delete_lambda(attempt_id)
+                logs_bytes = response['LogResult'].encode('ascii')
+                logs_base64_bytes = base64.b64decode(logs_bytes)
+                logs = logs_base64_bytes.decode('ascii')
 
-            success = len(payload['failed_test_names']) == 0
-            db.add_result_to_attempt(attempt_id, str(payload['failed_test_names']), success)
+                # aws.delete_lambda(attempt_id)
 
-            for test_name in payload['failed_test_names']:
-                flash(test_name + ' FAIL')
+                success = len(payload['failed_test_names']) == 0
+                db.add_result_to_attempt(attempt_id, str(payload['failed_test_names']), success)
 
-            if success:
-                flash('Success!')
+                for test_name in payload['failed_test_names']:
+                    flash(test_name + ' FAIL')
+
+                if success:
+                    flash('Success!')
+            else:
+                flash(error)
 
         else:
             flash(error)

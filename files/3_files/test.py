@@ -1,6 +1,6 @@
 import unittest
 import json
-from 1.attempt import test_func
+from attempt import test_func
 
 class TestStringMethods(unittest.TestCase):
 

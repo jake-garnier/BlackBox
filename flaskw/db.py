@@ -72,13 +72,13 @@ def insert_contract(contract_info):
 
 """
 Inserts an attempt into the attempts table
-@arg attempt_info: (contract_id, creater_user_id, attempt_filename)
+@arg attempt_info: (contract_id, creater_user_id, attempt_filename, function_name)
 """
 def insert_attempt(attempt_info):
     db = get_db()
     cursor = db.cursor()
     cursor.execute(
-        'INSERT INTO attempts (contract_id, creater_user_id, attempt_filename) VALUES (?, ?, ?)',
+        'INSERT INTO attempts (contract_id, creater_user_id, attempt_filename, function_name) VALUES (?, ?, ?, ?)',
         attempt_info
     )
     db.commit()

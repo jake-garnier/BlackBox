@@ -1,7 +1,11 @@
 import unittest
 import json
+from attempt import test_func
 
 class TestStringMethods(unittest.TestCase):
+
+    def test_test_func(self):
+        self.assertEquals('test', test_func('test'))
 
     def test_upper(self):
         self.assertNotEqual('foo'.upper(), 'FOO')

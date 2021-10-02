@@ -3,6 +3,7 @@ from flaskw import db as db
 from flaskw import form as form
 from flask import Flask, request, render_template, redirect, url_for, flash, session
 import datetime
+import importlib.util
 
 # export FLASK_APP=flaskw && export FLASK_ENV=development
 # flask run
@@ -86,7 +87,13 @@ def create_app(test_config=None):
 
     @app.route('/test')
     def test():
-        return 'test'
+        # attempt_test = importlib.import_module('flaskw.attempt_test')
+        # return str(callable(getattr(attempt_test,'test_func')))
+
+        spec = importlib.util.spec_from_file_location("attempt_test", "/Users/jakegarnier/home/blackBoxFlask/flaskw/attempt_test.py")
+        attempt_test = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(attempt_test)
+        return str(callable(getattr(attempt_test,'test_func')))
         
     db.init_app(app)
 
