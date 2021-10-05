@@ -1,7 +1,8 @@
 import os
 from flaskw import db as db
 from flaskw import form as form
-from flask import Flask, request, render_template, redirect, url_for, flash, session
+from flaskw import paypal as paypal
+from flask import Flask, jsonify, request, render_template, redirect, url_for, flash, session
 import datetime
 import importlib.util
 import paypalrestsdk
@@ -72,6 +73,28 @@ def create_app(test_config=None):
         session.clear()
         return redirect(url_for('table'))
 
+    @app.route('/paypal/create/<int:id>')
+    def paypal_create(id):
+        return render_template('paypal_create.html', id)
+
+    @app.route('/payment/<int:id>', methods=['POST'])
+    def payment(id):
+        return paypal.initialize_payment(id)
+
+    @app.route('/execute', methods=['POST'])
+    def execute():
+
+        payment = paypalrestsdk.Payment.find(request.form['paymentID'])
+
+        if payment.execute({'payer_id' : request.form['payerID']}):
+            print('Execute success!')
+            success = True
+        else:
+            print(payment.error)
+            success = False
+
+        return jsonify({'success' : success})
+
 
     """
     Helper Endpoints
@@ -95,11 +118,7 @@ def create_app(test_config=None):
     def test():
         # attempt_test = importlib.import_module('flaskw.attempt_test')
         # return str(callable(getattr(attempt_test,'test_func')))
-
-        spec = importlib.util.spec_from_file_location("attempt_test", "/Users/jakegarnier/home/blackBoxFlask/flaskw/attempt_test.py")
-        attempt_test = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(attempt_test)
-        return str(callable(getattr(attempt_test,'test_func')))
+        return render_template('paypal.html')
         
     db.init_app(app)
 

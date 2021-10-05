@@ -54,16 +54,16 @@ Start of db manipulation functions
 
 """
 Inserts an contract into the contracts table
-@arg contract_info: (title, descript, difficulty,
-                     creation_date, expiration_date, payout, test_filename)
+@arg contract_info: (title, descript, difficulty, creation_date,
+                     expiration_date, payout, test_filename, payment_id)
 """
 def insert_contract(contract_info):
     db = get_db()
     cursor = db.cursor()
     cursor.execute(
         'INSERT INTO contracts (title, descript, difficulty, \
-        creation_date, expiration_date, creater_user_id, payout, test_filename) \
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        creation_date, expiration_date, creater_user_id, payout, test_filename, \
+        payment_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
         contract_info
     )
     db.commit()
@@ -109,6 +109,14 @@ def delete_attempt(attempt_id):
     db.execute(
         "DELETE FROM attempts WHERE id = ?",
         (attempt_id, )
+    )
+    db.commit()
+
+def add_payment_id_to_contract(contract_id, payment_id):
+    db = get_db()
+    db.execute(
+        'UPDATE contracts SET payment_id = ? WHERE id = ?',
+        (payment_id, contract_id)
     )
     db.commit()
 

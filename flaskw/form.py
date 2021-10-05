@@ -140,7 +140,7 @@ def create_contract_view(request):
             if uploaded_file.filename != '':
                 uploaded_file.save(contract_files_folder + '/' + 'test.' + uploaded_file_extension)
 
-            return redirect(url_for('table'))
+            return redirect(url_for('payment'))
 
         flash(error)
 
