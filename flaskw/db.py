@@ -53,17 +53,17 @@ Start of db manipulation functions
 """
 
 """
-Inserts an contract into the contracts table
-@arg contract_info: (title, descript, difficulty, creation_date,
-                     expiration_date, payout, test_filename, payment_id)
+Inserts an contract into the contract table
+@arg contract_info: (title, description, difficulty, creation_date,
+                     expiration_date, payout, test_filename, payment_id, payer_id)
 """
 def insert_contract(contract_info):
     db = get_db()
     cursor = db.cursor()
     cursor.execute(
-        'INSERT INTO contracts (title, descript, difficulty, \
+        'INSERT INTO contract (title, description, difficulty, \
         creation_date, expiration_date, creater_user_id, payout, test_filename, \
-        payment_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        payment_id, payer_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         contract_info
     )
     db.commit()
@@ -71,14 +71,14 @@ def insert_contract(contract_info):
     return cursor.lastrowid
 
 """
-Inserts an attempt into the attempts table
+Inserts an attempt into the attemptstable
 @arg attempt_info: (contract_id, creater_user_id, attempt_filename, function_name)
 """
 def insert_attempt(attempt_info):
     db = get_db()
     cursor = db.cursor()
     cursor.execute(
-        'INSERT INTO attempts (contract_id, creater_user_id, attempt_filename, function_name) VALUES (?, ?, ?, ?)',
+        'INSERT INTO attempt (contract_id, creater_user_id, attempt_filename, function_name) VALUES (?, ?, ?, ?)',
         attempt_info
     )
     db.commit()
@@ -99,7 +99,7 @@ def insert_user(user_info):
 def delete_contract(contract_id):
     db = get_db()
     db.execute(
-        "DELETE FROM contracts WHERE id = ?",
+        "DELETE FROM contract WHERE id = ?",
         (contract_id, )
     )
     db.commit()
@@ -107,7 +107,7 @@ def delete_contract(contract_id):
 def delete_attempt(attempt_id):
     db = get_db()
     db.execute(
-        "DELETE FROM attempts WHERE id = ?",
+        "DELETE FROM attempt WHERE id = ?",
         (attempt_id, )
     )
     db.commit()
@@ -115,7 +115,7 @@ def delete_attempt(attempt_id):
 def add_payment_id_to_contract(contract_id, payment_id):
     db = get_db()
     db.execute(
-        'UPDATE contracts SET payment_id = ? WHERE id = ?',
+        'UPDATE contract SET payment_id = ? WHERE id = ?',
         (payment_id, contract_id)
     )
     db.commit()
@@ -123,40 +123,58 @@ def add_payment_id_to_contract(contract_id, payment_id):
 def add_result_to_attempt(attempt_id, failed_tests, success):
     db = get_db()
     db.execute(
-        'UPDATE attempts SET ran = 1 WHERE id = ?',
+        'UPDATE attempt SET ran = 1 WHERE id = ?',
         (attempt_id, )
     )
     db.execute(
-        'UPDATE attempts SET failed_tests = ? WHERE id = ?',
+        'UPDATE attempt SET failed_tests = ? WHERE id = ?',
         (failed_tests, attempt_id)
     )
     db.execute(
-        'UPDATE attempts SET success = ? WHERE id = ?',
+        'UPDATE attempt SET success = ? WHERE id = ?',
         (success, attempt_id)
     )
     db.commit()
 
 def get_contract(id):
     db = get_db()
-    return db.execute(
-        'SELECT * from contracts WHERE id = ?', (id, )
+    cursor = db.cursor()
+    row = cursor.execute(
+        'SELECT * from contract WHERE id = ?', (id, )
     ).fetchone()
+
+    if not row:
+        return []
+
+    return parse_row(cursor.description, row)
 
 def get_attempt(id):
     db = get_db()
-    return db.execute(
-        'SELECT * from attempts WHERE id = ?', (id, )
+    cursor = db.cursor()
+    row = cursor.execute(
+        'SELECT * from attempt WHERE id = ?', (id, )
     ).fetchone()
+
+    if not row:
+        return []
+
+    return parse_row(cursor.description, row)
 
 def get_user(username):
     db = get_db()
-    return db.execute(
+    cursor = db.cursor()
+    row = cursor.execute(
         'SELECT * FROM user WHERE username = ?', (username,)
     ).fetchone()
 
+    if not row:
+        return []
+
+    return parse_row(cursor.description, row)
+
 def print_contract_table():
     db = get_db()
-    contracts = db.execute('SELECT * FROM contracts').fetchall()
+    contracts = db.execute('SELECT * FROM contract').fetchall()
 
     ret = list()
     for contract in contracts:
@@ -166,23 +184,31 @@ def print_contract_table():
 
 def get_contracts():
     db = get_db()
-    contracts = db.execute('SELECT * FROM contracts').fetchall()
+    cursor = db.cursor()
+    rows = cursor.execute('SELECT * FROM contract').fetchall()
     
     ret = list()
-    for contract in contracts:
-        ret.append(list(contract))
+    for row in rows:
+        ret.append(parse_row(cursor.description, row))
 
     return ret
     
-def get_contracts_attempts(contract_id):
+def get_contract_attempts(contract_id):
     db = get_db()
-    attempts = db.execute(
-        'SELECT * FROM attempts WHERE contract_id = ?',
+    cursor = db.cursor()
+    rows = cursor.execute(
+        'SELECT * FROM attempt WHERE contract_id = ?',
         (contract_id, )
     )
 
     ret = list()
-    for attempt in attempts:
-        ret.append(list(attempt))
+    for row in rows:
+        ret.append(parse_row(cursor.description, row))
     
     return ret
+
+def parse_row(description, row):
+    ret_dict = dict()
+    for column, value in zip(description, row):
+        ret_dict[column[0]] = value
+    return ret_dict

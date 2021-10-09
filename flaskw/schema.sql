@@ -2,20 +2,21 @@ DROP TABLE IF EXISTS contracts;
 DROP TABLE IF EXISTS attempts;
 DROP TABLE IF EXISTS user;
 
-CREATE TABLE contracts (
+CREATE TABLE contract (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
-  descript TEXT,
+  description TEXT,
   difficulty INTEGER NOT NULL,
   creation_date DATETIME NOT NULL,
   expiration_date DATETIME NOT NULL,
   creater_user_id INTEGER NOT NULL,
   payout INTEGER NOT NULL,
   test_filename TEXT NOT NULL,
-  payment_id TEXT NOT NULL
+  payment_id TEXT,
+  payer_id TEXT
 );
 
-CREATE TABLE attempts (
+CREATE TABLE attempt (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   contract_id INTEGER NOT NULL,
   creater_user_id INTEGER NOT NULL,

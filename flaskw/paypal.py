@@ -46,35 +46,46 @@ from flaskw import db
 
 #     flash(str(payment.links))
 
+def configure():
+    paypalrestsdk.configure({
+        'mode': 'sandbox', #sandbox or live
+        'client_id': 'Ae25aMoBv7uZfZP0b3OG4_-W3ffiBuVU774srA0yYqq_8_MvbI4cV_fNsoDraE-vzP-_DxPg8NPl7Zye',
+        'client_secret': 'EE0KgZwfsx4VtLRj0DDhJzH8rw_uWw1Sb2F-VLUB3h0rGidtYF9suXh20NeelMnBG4iZFY7eEOcJsznn' }
+    )
 
-def initialize_payment(contract_id):
+def create_payment(request):
 
-    contract = db.get_contract(contract_id)
+    contract = db.get_contract(request.form['contractID'])
 
     payment = paypalrestsdk.Payment({
         "intent": "authorize",
         "payer": {
-            "payment_method": "paypal"
-        },
-
+            "payment_method": "paypal"},
         "redirect_urls": {
             "return_url": "http://localhost:3000/payment/execute",
-            "cancel_url": "http://localhost:3000/"
-        },
-
+            "cancel_url": "http://localhost:3000/"},
         "transactions": [{
             "amount": {
-                "total": str(contract[7]),
-                "currency": "USD"
-            },
-            "description": "This is the payment transaction description."
-        }]
-    })
+                "total": str(contract['payout']),
+                "currency": "USD"},
+            "description": "This is the payment transaction description."}]})
 
     if payment.create():
         print('Payment success!')
-        db.add_payment_id_to_contract(contract_id, payment.id)
     else:
         print(payment.error)
 
     return jsonify({'paymentID' : payment.id})
+
+def execute_payment(request):
+    success = False
+
+    payment = paypalrestsdk.Payment.find(request.form['paymentID'])
+
+    if payment.execute({'payer_id' : request.form['payerID']}):
+        print('Execute success!')
+        success = True
+    else:
+        print(payment.error)
+
+    return jsonify({'success' : success})

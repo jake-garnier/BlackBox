@@ -45,16 +45,16 @@ table, th, td {
   </tr>
 {% for contract in contracts %}
   <tr>
-    <td>{{ contract[0] }}</td>
-    <td>{{ contract[1] }}</td>
-    <td>{{ contract[3] }}</td>
-    <td>{{ contract[4] }}</td>
-    <td>{{ contract[5] }}</td>
-    <td>{{ contract[6] }}</td>
-    <td>{{ contract[7] }}</td>
-    <td><a href="{{url_for('viewContract', id=contract[0])}}">Open</a></td>
-    {% if session['user_id'] == contract[6] %}
-      <td><a href="{{url_for('deleteContract', id=contract[0])}}">Delete</a></td>
+    <td>{{ contract['id'] }}</td>
+    <td>{{ contract['title'] }}</td>
+    <td>{{ contract['difficulty'] }}</td>
+    <td>{{ contract['creation_date'] }}</td>
+    <td>{{ contract['expiration_date'] }}</td>
+    <td>{{ contract['creater_user_id'] }}</td>
+    <td>{{ contract['payout'] }}</td>
+    <td><a href="{{url_for('viewContract', id=contract['id'])}}">Open</a></td>
+    {% if session['user_id'] == contract['creater_user_id'] %}
+      <td><a href="{{url_for('deleteContract', id=contract['id'])}}">Delete</a></td>
     {% endif %}
   </tr>
 {% endfor %}

@@ -90,7 +90,7 @@ def show_contract_view(contract_id, request):
 
     return render_template('contractView.html',
                            contract=db.get_contract(contract_id),
-                           attempts=db.get_contracts_attempts(contract_id))
+                           attempts=db.get_contract_attempts(contract_id))
 
 
 def create_contract_view(request):
@@ -126,11 +126,10 @@ def create_contract_view(request):
             error = 'Test file has no name'
 
         if error is None:
-            paypal.create_payment(payout)
 
             contract_info = (title, description, difficulty,
                              datetime.datetime.now(), expiration_date,
-                             session['user_id'], payout, 'test.' + uploaded_file_extension)
+                             session['user_id'], payout, 'test.' + uploaded_file_extension, None, None)
 
             contract_id = db.insert_contract(contract_info)
 
@@ -140,7 +139,7 @@ def create_contract_view(request):
             if uploaded_file.filename != '':
                 uploaded_file.save(contract_files_folder + '/' + 'test.' + uploaded_file_extension)
 
-            return redirect(url_for('payment'))
+            return redirect(url_for('paypal_create', id=contract_id))
 
         flash(error)
 

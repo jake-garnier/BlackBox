@@ -46,11 +46,11 @@ def create_lambda(contract_id, attempt_id, contract_files_dir):
     
     path = os.path.abspath(os.getcwd())
 
-    test_file = db.get_contract(contract_id)[8]
+    test_file = db.get_contract(contract_id)['test_filename']
 
     attempt = db.get_attempt(attempt_id)
-    attempt_file = attempt[3]
-    attempt_function_name = attempt[7]
+    attempt_file = attempt['attempt_filename']
+    attempt_function_name = attempt['function_name']
 
     shutil.copyfile(contract_files_dir + '/' + test_file, contract_files_dir + '/tmp')
     line_prepender(contract_files_dir + '/tmp', 'from attempt import ' + attempt_function_name)

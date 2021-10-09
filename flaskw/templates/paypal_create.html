@@ -10,8 +10,8 @@
 <script src="https://www.paypalobjects.com/api/checkout.js"></script>
 
 <script>
-    var CREATE_PAYMENT_URL  = 'http://127.0.0.1:5000/payment/create';
-    var EXECUTE_PAYMENT_URL = 'http://127.0.0.1:5000/execute';
+    var CREATE_PAYMENT_URL  = 'http://127.0.0.1:5000/paypal/payment';
+    var EXECUTE_PAYMENT_URL = 'http://127.0.0.1:5000/paypal/execute';
 
     paypal.Button.render({
 
@@ -20,7 +20,9 @@
         commit: true, // Show a 'Pay Now' button
 
         payment: function() {
-            return paypal.request.post(CREATE_PAYMENT_URL).then(function(data) {
+            return paypal.request.post(CREATE_PAYMENT_URL, {
+                contractID: "{{ id }}"
+            }).then(function(data) {
                 return data.paymentID;
             });
         },
@@ -28,7 +30,8 @@
         onAuthorize: function(data) {
             return paypal.request.post(EXECUTE_PAYMENT_URL, {
                 paymentID: data.paymentID,
-                payerID:   data.payerID
+                payerID:   data.payerID,
+                contractID: "{{ id }}"
             }).then(function(res) {
 
                 console.log(res.success)

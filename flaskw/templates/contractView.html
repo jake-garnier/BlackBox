@@ -45,14 +45,14 @@
   </tr>
 {% for attempt in attempts %}
   <tr>
-    <td>{{ attempt[0] }}</td>
-    <td>{{ attempt[1] }}</td>
-    <td>{{ attempt[2] }}</td>
-    <td>{{ attempt[3] }}</td>
-    <td>{{ attempt[4] }}</td>
-    <td>{{ attempt[5] }}</td>
-    <td>{{ attempt[6] }}</td>
-    <td>{{ attempt[7] }}</td>
+    <td>{{ attempt['id'] }}</td>
+    <td>{{ attempt['contract_id'] }}</td>
+    <td>{{ attempt['creater_user_id'] }}</td>
+    <td>{{ attempt['attempt_filename'] }}</td>
+    <td>{{ attempt['ran'] }}</td>
+    <td>{{ attempt['success'] }}</td>
+    <td>{{ attempt['failed_tests'] }}</td>
+    <td>{{ attempt['function_name'] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -72,14 +72,14 @@
   </tr>
 {% for attempt in attempts %}
   {% if session['user_id'] == contract[2] %}
-    <td>{{ attempt[0] }}</td>
-    <td>{{ attempt[1] }}</td>
-    <td>{{ attempt[2] }}</td>
-    <td>{{ attempt[3] }}</td>
-    <td>{{ attempt[4] }}</td>
-    <td>{{ attempt[5] }}</td>
-    <td>{{ attempt[6] }}</td>
-    <td>{{ attempt[7] }}</td>
+    <td>{{ attempt['id'] }}</td>
+    <td>{{ attempt['contract_id'] }}</td>
+    <td>{{ attempt['creater_user_id'] }}</td>
+    <td>{{ attempt['attempt_filename'] }}</td>
+    <td>{{ attempt['ran'] }}</td>
+    <td>{{ attempt['success'] }}</td>
+    <td>{{ attempt['failed_tests'] }}</td>
+    <td>{{ attempt['function_name'] }}</td>
   {% endif %}
 {% endfor %}
 </table>

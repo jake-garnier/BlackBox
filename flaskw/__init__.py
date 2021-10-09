@@ -23,10 +23,7 @@ def create_app(test_config=None):
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
     )
 
-    paypalrestsdk.configure({
-        'mode': 'sandbox', #sandbox or live
-        'client_id': 'Ae25aMoBv7uZfZP0b3OG4_-W3ffiBuVU774srA0yYqq_8_MvbI4cV_fNsoDraE-vzP-_DxPg8NPl7Zye',
-        'client_secret': 'EE0KgZwfsx4VtLRj0DDhJzH8rw_uWw1Sb2F-VLUB3h0rGidtYF9suXh20NeelMnBG4iZFY7eEOcJsznn' })
+    paypal.configure()
 
     if test_config is None:
         # load the instance config, if it exists, when not testing
@@ -47,7 +44,7 @@ def create_app(test_config=None):
 
     @app.route('/table')
     def table():
-        return render_template('basicTable.html',
+        return render_template('table.html',
                                contracts=db.get_contracts(),
                                session=session)
 
@@ -75,26 +72,23 @@ def create_app(test_config=None):
 
     @app.route('/paypal/create/<int:id>')
     def paypal_create(id):
-        return render_template('paypal_create.html', id)
+        return render_template('paypal_create.html', id=id)
 
-    @app.route('/payment/<int:id>', methods=['POST'])
-    def payment(id):
-        return paypal.initialize_payment(id)
+    # @app.route('/paypal/payment', methods=['POST'])
+    # def payment():
+    #     return paypal.create_payment(16)
 
-    @app.route('/execute', methods=['POST'])
+    # @app.route('/paypal/execute', methods=['POST'])
+    # def execute():
+    #     return paypal.execute_payment(request)
+
+    @app.route('/paypal/payment', methods=['POST'])
+    def payment():
+        return paypal.create_payment(request)
+
+    @app.route('/paypal/execute', methods=['POST'])
     def execute():
-
-        payment = paypalrestsdk.Payment.find(request.form['paymentID'])
-
-        if payment.execute({'payer_id' : request.form['payerID']}):
-            print('Execute success!')
-            success = True
-        else:
-            print(payment.error)
-            success = False
-
-        return jsonify({'success' : success})
-
+        return paypal.execute_payment(request)
 
     """
     Helper Endpoints
@@ -116,9 +110,7 @@ def create_app(test_config=None):
 
     @app.route('/test')
     def test():
-        # attempt_test = importlib.import_module('flaskw.attempt_test')
-        # return str(callable(getattr(attempt_test,'test_func')))
-        return render_template('paypal.html')
+        return str(db.get_contracts())
         
     db.init_app(app)
 
