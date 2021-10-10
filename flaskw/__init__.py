@@ -74,14 +74,6 @@ def create_app(test_config=None):
     def paypal_create(id):
         return render_template('paypal_create.html', id=id)
 
-    # @app.route('/paypal/payment', methods=['POST'])
-    # def payment():
-    #     return paypal.create_payment(16)
-
-    # @app.route('/paypal/execute', methods=['POST'])
-    # def execute():
-    #     return paypal.execute_payment(request)
-
     @app.route('/paypal/payment', methods=['POST'])
     def payment():
         return paypal.create_payment(request)
@@ -89,6 +81,10 @@ def create_app(test_config=None):
     @app.route('/paypal/execute', methods=['POST'])
     def execute():
         return paypal.execute_payment(request)
+
+    @app.route('/paypal/capture/<int:id>'   )
+    def capture(id):
+        return paypal.capture_payment(id)
 
     """
     Helper Endpoints

@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS contracts;
-DROP TABLE IF EXISTS attempts;
+DROP TABLE IF EXISTS contract;
+DROP TABLE IF EXISTS attempt;
 DROP TABLE IF EXISTS user;
 
 CREATE TABLE contract (
@@ -13,7 +13,8 @@ CREATE TABLE contract (
   payout INTEGER NOT NULL,
   test_filename TEXT NOT NULL,
   payment_id TEXT,
-  payer_id TEXT
+  payer_id TEXT,
+  authorization_id TEXT
 );
 
 CREATE TABLE attempt (

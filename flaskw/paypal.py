@@ -1,50 +1,9 @@
 from paypalrestsdk import Payment
 from paypalrestsdk import Authorization
-from flask import redirect, flash, jsonify
+from flask import redirect, flash, jsonify, url_for
 import paypalrestsdk
 from flaskw import db
 
-
-# def create_payment(amount, denomination="USD", description="Contract Payment"):
-#     payment = Payment({
-#         "intent": "authorize",
-
-#         # Set payment method
-#         "payer": {
-#             "payment_method": "paypal"
-#         },
-
-#         # Set redirect urls
-#         "redirect_urls": {
-#             "return_url": "http://127.0.0.1:5000/table",
-#             "cancel_url": "http://127.0.0.1:5000/table"
-#         },
-
-#         # Set transaction object
-#         "transactions": [{
-#             "amount": {
-#             "total": str(amount),
-#             "currency": denomination
-#             },
-#             "description": description
-#         }]
-#     })
-
-#     # Create payment
-#     if payment.create():
-#         # Extract redirect url
-#         for link in payment.links:
-#             if link.method == "REDIRECT":
-#                 # Capture redirect url
-#                 redirect_url = str(link.href)
-
-#                 # REDIRECT USER to redirect_url
-#                 redirect(redirect_url)
-#     else:
-#         flash("Error while creating payment:")
-#         flash(payment.error)
-
-#     flash(str(payment.links))
 
 def configure():
     paypalrestsdk.configure({
@@ -59,33 +18,66 @@ def create_payment(request):
 
     payment = paypalrestsdk.Payment({
         "intent": "authorize",
+
         "payer": {
-            "payment_method": "paypal"},
+            "payment_method": "paypal"
+        },
+
         "redirect_urls": {
             "return_url": "http://localhost:3000/payment/execute",
-            "cancel_url": "http://localhost:3000/"},
+            "cancel_url": "http://localhost:3000/"
+        },
+
         "transactions": [{
             "amount": {
                 "total": str(contract['payout']),
                 "currency": "USD"},
-            "description": "This is the payment transaction description."}]})
+            "description": "This is the payment transaction description."
+        }]
+    })
 
     if payment.create():
         print('Payment success!')
+        return jsonify({'paymentID' : payment.id, 'success' : True})
     else:
         print(payment.error)
-
-    return jsonify({'paymentID' : payment.id})
+        return jsonify({'success' : False})
 
 def execute_payment(request):
-    success = False
 
     payment = paypalrestsdk.Payment.find(request.form['paymentID'])
 
     if payment.execute({'payer_id' : request.form['payerID']}):
         print('Execute success!')
-        success = True
+        authorization_id = payment.transactions[0].related_resources[0].authorization.id
+        db.add_authorization_id_to_contract(request.form['contractID'], authorization_id)
+        return jsonify({'redirect' : url_for('table'), 'success' : True})
     else:
         print(payment.error)
+        jsonify({'success' : False})
 
-    return jsonify({'success' : success})
+def capture_payment(contractID):
+    contract = db.get_contract(contractID)
+
+    authorization = Authorization.find(contract['authorization_id'])
+
+    # Set capture details
+    capture = authorization.capture({
+        "amount": {
+            "currency": "USD",
+            "total": str(contract['payout'])
+        },
+        "payee": {
+            "email_address": "sb-eyoij8038949@personal.example.com"
+        },
+        "is_final_capture": True
+    })
+
+    # Capture authorization
+    if capture.success():
+        print("Capture[%s] successfully" % (capture.id))
+        return redirect(url_for('table'))
+        # return jsonify({'redirect' : url_for('table'), 'success' : True})
+    else:
+        print(capture.error)
+        return jsonify({'success' : False})

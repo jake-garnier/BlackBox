@@ -80,6 +80,8 @@ def show_contract_view(contract_id, request):
 
                 if success:
                     flash('Success!')
+                    return redirect(url_for('capture', id=contract_id))
+                    
             else:
                 flash(error)
                 db.delete_attempt(attempt_id)
@@ -129,7 +131,7 @@ def create_contract_view(request):
 
             contract_info = (title, description, difficulty,
                              datetime.datetime.now(), expiration_date,
-                             session['user_id'], payout, 'test.' + uploaded_file_extension, None, None)
+                             session['user_id'], payout, 'test.' + uploaded_file_extension, None, None, None)
 
             contract_id = db.insert_contract(contract_info)
 
@@ -177,6 +179,8 @@ def login_user_view(request):
         error = None
 
         user = db.get_user(username)
+
+        print(str(user))
 
         if user is None:
             error = 'Incorrect username.'

@@ -55,7 +55,7 @@ Start of db manipulation functions
 """
 Inserts an contract into the contract table
 @arg contract_info: (title, description, difficulty, creation_date,
-                     expiration_date, payout, test_filename, payment_id, payer_id)
+                     expiration_date, payout, test_filename, payment_id, payer_id, authorization_id)
 """
 def insert_contract(contract_info):
     db = get_db()
@@ -63,7 +63,7 @@ def insert_contract(contract_info):
     cursor.execute(
         'INSERT INTO contract (title, description, difficulty, \
         creation_date, expiration_date, creater_user_id, payout, test_filename, \
-        payment_id, payer_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        payment_id, payer_id, authorization_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )',
         contract_info
     )
     db.commit()
@@ -112,11 +112,11 @@ def delete_attempt(attempt_id):
     )
     db.commit()
 
-def add_payment_id_to_contract(contract_id, payment_id):
+def add_authorization_id_to_contract(contract_id, authorization_id):
     db = get_db()
     db.execute(
-        'UPDATE contract SET payment_id = ? WHERE id = ?',
-        (payment_id, contract_id)
+        'UPDATE contract SET authorization_id = ? WHERE id = ?',
+        (authorization_id, contract_id)
     )
     db.commit()
 
@@ -144,7 +144,7 @@ def get_contract(id):
     ).fetchone()
 
     if not row:
-        return []
+        return None
 
     return parse_row(cursor.description, row)
 
@@ -156,7 +156,7 @@ def get_attempt(id):
     ).fetchone()
 
     if not row:
-        return []
+        return None
 
     return parse_row(cursor.description, row)
 
@@ -168,7 +168,7 @@ def get_user(username):
     ).fetchone()
 
     if not row:
-        return []
+        return None
 
     return parse_row(cursor.description, row)
 
