@@ -7,6 +7,8 @@ import datetime
 import importlib.util
 import paypalrestsdk
 
+from paypalpayoutssdk.core import PayPalHttpClient, SandboxEnvironment
+
 # export FLASK_APP=flaskw && export FLASK_ENV=development
 # flask run
 
@@ -23,7 +25,7 @@ def create_app(test_config=None):
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
     )
 
-    paypal.configure()
+    payouts_client = paypal.configure()
 
     if test_config is None:
         # load the instance config, if it exists, when not testing
@@ -106,7 +108,7 @@ def create_app(test_config=None):
 
     @app.route('/test')
     def test():
-        return str(db.get_contracts())
+        return paypal.make_payout(payouts_client)
         
     db.init_app(app)
 

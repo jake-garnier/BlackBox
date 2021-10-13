@@ -1,4 +1,3 @@
-from attempt import func
 
 import unittest
 import json
