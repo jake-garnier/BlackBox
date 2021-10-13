@@ -13,18 +13,22 @@
 
 <h2>Contract</h2>
 
-<p>ID: {{ contract[0] }}</p>
-<p>Title: {{ contract[1] }}</p>
-<p>Difficulty: {{ contract[3] }}</p>
-<p>Created: {{ contract[4] }}</p>
-<p>Expires: {{ contract[5] }}</p>
-<p>Creater ID: {{ contract[6] }}</p>
-<p>Payout: {{ contract[7] }}</p>
+<p>ID: {{ contract['id'] }}</p>
+<p>Title: {{ contract['title'] }}</p>
+<p>Difficulty: {{ contract['difficulty'] }}</p>
+<p>Created: {{ contract['creation_date'] }}</p>
+<p>Expires: {{ contract['expiration_date'] }}</p>
+<p>Creater ID: {{ contract['creater_user_id'] }}</p>
+<p>Payout: {{ contract['payout'] }}</p>
 
 <form method="post" enctype="multipart/form-data">
   <p>
     <label for="function_name">Function Name</label>
     <input name="function_name" id="function_name">
+  </p>
+  <p>
+    <label for="payment_email">payment_email</label>
+    <input name="payment_email" id="payment_email">
   </p>
   <p><input type="file" name="file"></p>
   <p><input type="submit" value="Attempt"></p>
@@ -42,6 +46,7 @@
     <th>Success</th>
     <th>Failed Tests</th>
     <th>Function Name</th>
+    <th>Payment Email</th>
   </tr>
 {% for attempt in attempts %}
   <tr>
@@ -53,6 +58,7 @@
     <td>{{ attempt['success'] }}</td>
     <td>{{ attempt['failed_tests'] }}</td>
     <td>{{ attempt['function_name'] }}</td>
+    <td>{{ attempt['payment_email'] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -69,6 +75,7 @@
     <th>Success</th>
     <th>Failed Tests</th>
     <th>Function Name</th>
+    <th>Payment Email</th>
   </tr>
 {% for attempt in attempts %}
   {% if session['user_id'] == contract[2] %}
@@ -80,6 +87,7 @@
     <td>{{ attempt['success'] }}</td>
     <td>{{ attempt['failed_tests'] }}</td>
     <td>{{ attempt['function_name'] }}</td>
+    <td>{{ attempt['payment_email'] }}</td>
   {% endif %}
 {% endfor %}
 </table>

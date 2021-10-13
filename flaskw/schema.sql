@@ -25,7 +25,8 @@ CREATE TABLE attempt (
   ran BOOLEAN,
   success BOOLEAN,
   failed_tests TEXT,
-  function_name TEXT NOT NULL
+  function_name TEXT NOT NULL,
+  payment_email TEXT NOT NULL
 );
 
 CREATE TABLE user (

@@ -42,9 +42,6 @@ def create_payment(request):
                 "total": str(contract['payout']),
                 "currency": "USD"},
             "description": "This is the payment transaction description.",
-            "payee": {
-                "email_address": "sb-eyoij8038949@personal.example.com"
-            }
         }]
     })
 
@@ -60,60 +57,32 @@ def execute_payment(request):
     payment = paypalrestsdk.Payment.find(request.form['paymentID'])
 
     if payment.execute({'payer_id' : request.form['payerID']}):
-        print(str(payment))
         print('Execute success!')
-        # authorization_id = payment.transactions[0].related_resources[0].authorization.id
-        # db.add_authorization_id_to_contract(request.form['contractID'], authorization_id)
         return jsonify({'redirect' : url_for('table'), 'success' : True})
     else:
         print(payment.error)
         jsonify({'success' : False})
 
-def capture_payment(contractID):
-    contract = db.get_contract(contractID)
+def make_payout(payouts_client, attempt_id):
 
-    authorization = Authorization.find(contract['authorization_id'])
+    attempt = db.get_attempt(attempt_id)
+    contract = db.get_contract(attempt['contract_id'])
 
-    # Set capture details
-    capture = authorization.capture({
-        "amount": {
-            "currency": "USD",
-            "total": str(contract['payout'])
-        },
-        "payee": {
-            "email_address": "sb-eyoij8038949@personal.example.com"
-        },
-        "is_final_capture": True
-    })
-
-    # Capture authorization
-    if capture.success():
-        print(str(capture))
-        print("Capture[%s] successfully" % (capture.id))
-        return redirect(url_for('table'))
-    else:
-        print(capture.error)
-        return jsonify({'success' : False})
-
-def make_payout(payouts_client):
-    # Construct a request object and set desired parameters
-    # Here, PayoutsPostRequest() creates a POST request to /v1/payments/payouts
     body = {
         "sender_batch_header": {
             "recipient_type": "EMAIL",
             "email_message": "SDK payouts test txn",
             "note": "Enjoy your Payout!!",
-            "sender_batch_id": "Test_SDK_2",
+            "sender_batch_id": attempt['id'],
             "email_subject": "This is a test transaction from SDK"
         },
         "items": [{
             "note": "Your 1$ Payout!",
             "amount": {
                 "currency": "USD",
-                "value": "100.00"
+                "value": (contract['payout']-.05)
             },
-            "receiver": "sb-l6yz28038899@personal.example.com",
-            "sender_item_id": "Test_txn_2"
+            "receiver": attempt['payment_email']
         }]
     }
 

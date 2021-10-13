@@ -24,6 +24,7 @@ def show_contract_view(contract_id, request):
         uploaded_file = request.files['file']
         uploaded_file_extension = uploaded_file.filename.rsplit('.', 1)[1].lower()
         contract_files_dir = 'files/' + str(contract_id) + '_files'
+        payment_email = request.form['payment_email']
 
         error = None
 
@@ -40,7 +41,7 @@ def show_contract_view(contract_id, request):
             error = '{Internal Error} Contract does not have file directory'
 
         if error is None:
-            attempt_info = (contract_id, session['user_id'], 'attempt.' + uploaded_file_extension, function_name)
+            attempt_info = (contract_id, session['user_id'], 'attempt.' + uploaded_file_extension, function_name, payment_email)
             attempt_id = db.insert_attempt(attempt_info)
 
             contract_path = contract_files_dir + '/' + str(attempt_id)
@@ -80,7 +81,7 @@ def show_contract_view(contract_id, request):
 
                 if success:
                     flash('Success!')
-                    return redirect(url_for('capture', id=contract_id))
+                    return redirect(url_for('payout', id=attempt_id))
                     
             else:
                 flash(error)

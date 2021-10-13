@@ -84,9 +84,9 @@ def create_app(test_config=None):
     def execute():
         return paypal.execute_payment(request)
 
-    @app.route('/paypal/capture/<int:id>'   )
-    def capture(id):
-        return paypal.capture_payment(id)
+    @app.route('/paypal/payout/<int:id>'   )
+    def payout(id):
+        return paypal.make_payout(payouts_client, id)
 
     """
     Helper Endpoints

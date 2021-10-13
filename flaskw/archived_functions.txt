@@ -1,0 +1,25 @@
+def capture_payment(contractID):
+    contract = db.get_contract(contractID)
+
+    authorization = Authorization.find(contract['authorization_id'])
+
+    # Set capture details
+    capture = authorization.capture({
+        "amount": {
+            "currency": "USD",
+            "total": str(contract['payout'])
+        },
+        "payee": {
+            "email_address": "sb-eyoij8038949@personal.example.com"
+        },
+        "is_final_capture": True
+    })
+
+    # Capture authorization
+    if capture.success():
+        print(str(capture))
+        print("Capture[%s] successfully" % (capture.id))
+        return redirect(url_for('table'))
+    else:
+        print(capture.error)
+        return jsonify({'success' : False})
