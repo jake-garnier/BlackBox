@@ -1,11 +1,9 @@
 import sqlite3
-
 import click
 from flask import current_app, g
 from flask.cli import with_appcontext
 import shutil
 import os
-from sqlite3 import IntegrityError
 
 
 def get_db():
@@ -73,6 +71,7 @@ def insert_contract(contract_info):
 """
 Inserts an attempt into the attemptstable
 @arg attempt_info: (contract_id, creater_user_id, attempt_filename, function_name, payment_email)
+@return The ID of the inserted attempt
 """
 def insert_attempt(attempt_info):
     db = get_db()
@@ -208,6 +207,9 @@ def get_contract_attempts(contract_id):
     
     return ret
 
+"""
+
+"""
 def parse_row(description, row):
     ret_dict = dict()
     for column, value in zip(description, row):

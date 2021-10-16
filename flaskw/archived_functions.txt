@@ -23,3 +23,16 @@ def capture_payment(contractID):
     else:
         print(capture.error)
         return jsonify({'success' : False})
+
+# If you want to submit a payload to the lambda function
+def execute_lambda(attempt_id):
+    lam_client = boto3.client('lambda')
+
+    # payload = '{ "function_name": "' + db.get_attempt(attempt_id)[7] + '" }'
+    # payload = str.encode(payload)
+
+    return lam_client.invoke(
+        FunctionName=str(attempt_id) + '_lambda',
+        InvocationType='RequestResponse',
+        LogType='Tail'
+    )
