@@ -8,6 +8,7 @@ from flaskw import db as db
 from flaskw import form as form
 from flaskw import paypal as paypal
 from flask import Flask, jsonify, request, render_template, redirect, url_for, flash, session
+from flaskext.mysql import MySQL
 import datetime
 
 # export FLASK_APP=flaskw && export FLASK_ENV=development && flask run
@@ -24,10 +25,19 @@ Description: Default flask create function, inilizes the paypal client, the endp
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
+
+    mysql = MySQL()
     app.config.from_mapping(
         SECRET_KEY='dev',
-        DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
+        MYSQL_DATABASE_USER= 'root',
+        MYSQL_DATABASE_PASSWORD = 'x6978293',
+        MYSQL_DATABASE_HOST = 'localhost',
+        DATABASE = mysql
     )
+    mysql.init_app(app)
+
+    # conn = mysql.get.connect()
+    # cursor =conn.cursor()
 
     payouts_client = paypal.configure()
 
@@ -142,6 +152,9 @@ def create_app(test_config=None):
     db.init_app(app)
 
     return app
+
+def get_mysql():
+    return mysql
 
 
 if __name__ == "__main__":

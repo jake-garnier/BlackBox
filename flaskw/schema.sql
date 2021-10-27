@@ -1,8 +1,9 @@
-DROP TABLE IF EXISTS contract;
-DROP TABLE IF EXISTS attempt;
-DROP TABLE IF EXISTS user;
+DROP TABLE IF EXISTS contracts;
+DROP TABLE IF EXISTS attempts;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS transactions;
 
-CREATE TABLE contract (
+CREATE TABLE contracts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
   description TEXT,
@@ -16,7 +17,7 @@ CREATE TABLE contract (
   payer_id TEXT
 );
 
-CREATE TABLE attempt (
+CREATE TABLE attempts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   contract_id INTEGER NOT NULL,
   creater_user_id INTEGER NOT NULL,
@@ -28,8 +29,20 @@ CREATE TABLE attempt (
   payment_email TEXT NOT NULL
 );
 
-CREATE TABLE user (
+CREATE TABLE users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT UNIQUE NOT NULL,
   password TEXT NOT NULL
 );
+
+CREATE TABLE transactions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  amount INTEGER NOT NULL,
+  denomination TEXT NOT NULL,
+  receiver_user_id INTEGER,
+  sender_user_id INTEGER,
+  deposit BOOLEAN
+);
+
+DENY DELETE ON Object::transactions
+GO;
