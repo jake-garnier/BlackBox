@@ -13,8 +13,7 @@ CREATE TABLE contract (
   payout INTEGER NOT NULL,
   test_filename TEXT NOT NULL,
   payment_id TEXT,
-  payer_id TEXT,
-  authorization_id TEXT
+  payer_id TEXT
 );
 
 CREATE TABLE attempt (

@@ -69,7 +69,7 @@ def create_app(test_config=None):
     """
     @app.route('/table/<int:id>', methods=('GET', 'POST'))
     def viewContract(id):
-        return form.show_contract_view(id, request)
+        return form.view_contract_view(id, request)
 
 
     """

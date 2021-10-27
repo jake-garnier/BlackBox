@@ -1,3 +1,8 @@
+"""
+File Name: db.py
+Description: Contains functions which manage the SQLite3 database
+"""
+
 import sqlite3
 import click
 from flask import current_app, g
@@ -6,6 +11,10 @@ import shutil
 import os
 
 
+"""
+Description: Gets the SQLite3 database, initializing it if it doesn't exist.
+@return (SQLite3 Connection) The database connection object.
+"""
 def get_db():
     if 'db' not in g:
         g.db = sqlite3.connect(
@@ -17,13 +26,19 @@ def get_db():
     return g.db
 
 
-def close_db(e=None):
+"""
+Description: Closes the SQLite3 database connection.
+"""
+def close_db():
     db = g.pop('db', None)
 
     if db is not None:
         db.close()
 
 
+"""
+Description: Initializes the database connection if it doesn't already exist, and creates the tables in the schema.
+"""
 def init_db():
     db = get_db()
 
@@ -31,6 +46,9 @@ def init_db():
         db.executescript(f.read().decode('utf8'))
 
 
+"""
+Description: Flask command to initalize the database, and delete the cached files associated with the database.
+"""
 @click.command('init-db')
 @with_appcontext
 def init_db_command():
@@ -41,6 +59,11 @@ def init_db_command():
     click.echo('Initialized the database.')
 
 
+"""
+Description: Initializes the flask application and sets the closed_db function as the handler for tearing down
+the appcontext.
+@arg (flask application) app: The flask application the handlers are being added to.
+"""
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
@@ -51,9 +74,10 @@ Start of db manipulation functions
 """
 
 """
-Inserts an contract into the contract table
+Description: Inserts an contract into the contract table.
 @arg contract_info: (title, description, difficulty, creation_date,
-                     expiration_date, payout, test_filename, payment_id, payer_id, authorization_id)
+                     expiration_date, payout, test_filename, payment_id, payer_id).
+@return (int): The row id of the inserted contract.
 """
 def insert_contract(contract_info):
     db = get_db()
@@ -61,17 +85,18 @@ def insert_contract(contract_info):
     cursor.execute(
         'INSERT INTO contract (title, description, difficulty, \
         creation_date, expiration_date, creater_user_id, payout, test_filename, \
-        payment_id, payer_id, authorization_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )',
+        payment_id, payer_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         contract_info
     )
     db.commit()
 
     return cursor.lastrowid
 
+
 """
-Inserts an attempt into the attemptstable
-@arg attempt_info: (contract_id, creater_user_id, attempt_filename, function_name, payment_email)
-@return The ID of the inserted attempt
+Description: Inserts an attempt into the attempt table.
+@arg attempt_info: (contract_id, creater_user_id, attempt_filename, function_name, payment_email).
+@return (int): The row id of the inserted attempt.
 """
 def insert_attempt(attempt_info):
     db = get_db()
@@ -85,6 +110,12 @@ def insert_attempt(attempt_info):
     
     return cursor.lastrowid
 
+
+"""
+Description: Inserts a user into the user table.
+@arg user_info: (username, password).
+@return (int): The row id of the inserted user.
+"""
 def insert_user(user_info):
     db = get_db()
     cursor = db.cursor()
@@ -96,6 +127,11 @@ def insert_user(user_info):
 
     return cursor.lastrowid
 
+
+"""
+Description: Deletes a contract from the contract table.
+@arg (int) contract_id: The row id of the contract.
+"""
 def delete_contract(contract_id):
     db = get_db()
     db.execute(
@@ -104,6 +140,11 @@ def delete_contract(contract_id):
     )
     db.commit()
 
+
+"""
+Description: Deletes an attempt from the attempt table.
+@arg (int) attempt_id: The row id of the attempt.
+"""
 def delete_attempt(attempt_id):
     db = get_db()
     db.execute(
@@ -112,14 +153,26 @@ def delete_attempt(attempt_id):
     )
     db.commit()
 
-def add_authorization_id_to_contract(contract_id, authorization_id):
+
+"""
+Description: Deletes a user from the user table.
+@arg (int) user_id: The row id of the user.
+"""
+def delete_user(user_id):
     db = get_db()
     db.execute(
-        'UPDATE contract SET authorization_id = ? WHERE id = ?',
-        (authorization_id, contract_id)
+        "DELETE FROM user WHERE id = ?",
+        (user_id, )
     )
     db.commit()
 
+
+"""
+Description: Adds the results of the attempt to the attempt row.
+@arg (int) attempt_id: The id of the attempt.
+@arg (str) failed_tests: The method names of the failed tests.
+@arg (bool) success: True if the attempt was successful
+"""
 def add_result_to_attempt(attempt_id, failed_tests, success):
     db = get_db()
     db.execute(
@@ -136,11 +189,17 @@ def add_result_to_attempt(attempt_id, failed_tests, success):
     )
     db.commit()
 
-def get_contract(id):
+
+"""
+Description: Gets a dictionary of the row's columns;
+@arg contract_id: The row id of the contract.
+@return (dict): The row's fields in dictionary form.
+"""
+def get_contract(contract_id):
     db = get_db()
     cursor = db.cursor()
     row = cursor.execute(
-        'SELECT * from contract WHERE id = ?', (id, )
+        'SELECT * from contract WHERE id = ?', (contract_id, )
     ).fetchone()
 
     if not row:
@@ -148,11 +207,17 @@ def get_contract(id):
 
     return parse_row(cursor.description, row)
 
-def get_attempt(id):
+
+"""
+Description: Gets a dictionary of the row's columns
+@arg attempt_id: The row id of the attempt.
+@return (dict): The row's fields in dictionary form.
+"""
+def get_attempt(attempt_id):
     db = get_db()
     cursor = db.cursor()
     row = cursor.execute(
-        'SELECT * from attempt WHERE id = ?', (id, )
+        'SELECT * from attempt WHERE id = ?', (attempt_id, )
     ).fetchone()
 
     if not row:
@@ -160,6 +225,12 @@ def get_attempt(id):
 
     return parse_row(cursor.description, row)
 
+
+"""
+Description: Gets a dictionary of the row's columns
+@arg username: The user's username.
+@return (dict): The row's fields in dictionary form.
+"""
 def get_user(username):
     db = get_db()
     cursor = db.cursor()
@@ -172,16 +243,11 @@ def get_user(username):
 
     return parse_row(cursor.description, row)
 
-def print_contract_table():
-    db = get_db()
-    contracts = db.execute('SELECT * FROM contract').fetchall()
 
-    ret = list()
-    for contract in contracts:
-        ret.append((list(contract)[0], list(contract)[1]))
-
-    return str(ret)
-
+"""
+Description: Gets a list of dictionaries of all the contracts in the contract table.
+@return (list(dict)): The information about all the contracts in the contract table.
+"""
 def get_contracts():
     db = get_db()
     cursor = db.cursor()
@@ -192,7 +258,13 @@ def get_contracts():
         ret.append(parse_row(cursor.description, row))
 
     return ret
-    
+
+
+"""
+Description: Gets a list of dictionaries of all the attempts for a cetain contract.
+@arg (int) contract_id: The row id of the contract.
+@return (list(dict)): The information about all the attempts for a cetain contract.
+"""
 def get_contract_attempts(contract_id):
     db = get_db()
     cursor = db.cursor()
@@ -208,7 +280,10 @@ def get_contract_attempts(contract_id):
     return ret
 
 """
-
+Description: Converts the row in a table to a dictionary representation.
+@arg (list) description: The cursor.description when pointing at the said row.
+@arg (SQL Row) row: The row being converted.
+@return (dict): The row converted to a dictionary representation.
 """
 def parse_row(description, row):
     ret_dict = dict()

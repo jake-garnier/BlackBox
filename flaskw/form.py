@@ -1,3 +1,8 @@
+"""
+File Name: form.py
+Description: Contains functions which manage the various forms in the application.
+"""
+
 import os
 import datetime
 import base64
@@ -13,15 +18,25 @@ import importlib.util
 ALLOWED_EXTENSIONS = {'java', 'zip', 'py'}
 
 
+"""
+Description: Checks to see if the filename's extension is supported.
+@arg filename (str): The filename being checked.
+@return (bool): True if the filename is supported.
+"""
 def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
-def show_contract_view(contract_id, request):
+"""
+Description: The form view/handler for viewing a contract.
+@arg contract_id (int): The id of the contract being viewed.
+@arg request (POST request): The request containing the information for the submittion.
+@return (template): The view contract template (auto updates upon success).
+"""
+def view_contract_view(contract_id, request):
     if request.method == 'POST':
         function_name = request.form['function_name']
-        uploaded_file = request.files['file']
+        uploaded_file = request.files['file'] 
         uploaded_file_extension = uploaded_file.filename.rsplit('.', 1)[1].lower()
         contract_files_dir = 'files/' + str(contract_id) + '_files'
         payment_email = request.form['payment_email']
@@ -96,6 +111,11 @@ def show_contract_view(contract_id, request):
                            attempts=db.get_contract_attempts(contract_id))
 
 
+"""
+Description: The form view/handler for creating a contract.
+@arg request (POST request): The request containing the information for the submittion.
+@return (template): The template for the create_contract_view if there is an error, else the table template.
+"""
 def create_contract_view(request):
     if request.method == 'POST':
         title = request.form['title']
@@ -148,6 +168,11 @@ def create_contract_view(request):
 
     return render_template('form.html')
 
+"""
+Description: THe form/view for registering a new account.
+@arg: request (POST request): The request containing the information about the submission.
+@return (template): The template for registration if there is an error, else the table template.
+"""
 def register_user_view(request):
     if request.method == 'POST':
         username = request.form['username']
@@ -172,6 +197,12 @@ def register_user_view(request):
 
     return render_template('register.html')
 
+
+"""
+Description: THe form/view for loging into an account.
+@arg: request (POST request): The request containing the information about the submission.
+@return (template): The template for registration if there is an error, else the table template.
+"""
 def login_user_view(request):
     if request.method == 'POST':
         username = request.form['username']

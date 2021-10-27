@@ -1,3 +1,9 @@
+"""
+File Name: paypal.py
+Description: Contains functions which manage the various paypal functions which receive and disburse payments 
+and manage balances.
+"""
+
 from paypalrestsdk import Payment
 from paypalrestsdk import Authorization
 from flask import redirect, flash, jsonify, url_for
@@ -8,6 +14,10 @@ from paypalpayoutssdk.payouts import PayoutsPostRequest
 from paypalhttp import HttpError
 from flaskw import constants
 
+"""
+Description: Configures the paypal environment, initializing the sandbox environment and the payouts client.
+@return (paypalrestsdk.PayoutsClient) The client used to send paypal payouts.
+"""
 def configure():
     # Creating an environment
     environment = SandboxEnvironment(client_id=constants.paypal_client_id, client_secret=constants.paypal_client_secret)
@@ -21,6 +31,10 @@ def configure():
 
     return payouts_client
 
+"""
+Description: Function for handling the creating of a paypal payment from the user to the application's merchant account.
+@arg: request (POST request): The request containing the information about the submission.
+"""
 def create_payment(request):
 
     contract = db.get_contract(request.form['contractID'])
@@ -52,6 +66,12 @@ def create_payment(request):
         print(payment.error)
         return jsonify({'success' : False})
 
+
+"""
+Description: Function for handling the execution of a paypal payment from the user to the application's 
+merchant account.
+@arg: request (POST request): The request containing the information about the submission.
+"""
 def execute_payment(request):
 
     payment = paypalrestsdk.Payment.find(request.form['paymentID'])
@@ -63,6 +83,13 @@ def execute_payment(request):
         print(payment.error)
         jsonify({'success' : False})
 
+
+"""
+Description: Function for handling the sending of a paypal payment from the application"s merchant account to a user.
+@arg payouts_client (paypalrestsdk.PayoutsClient): The client used to send the paypal payout.
+@arg attempt_id (int): The id of the attempt that was successful.
+@return (str): Message of success or failure.
+"""
 def make_payout(payouts_client, attempt_id):
 
     attempt = db.get_attempt(attempt_id)
