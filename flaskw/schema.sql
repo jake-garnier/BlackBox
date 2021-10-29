@@ -43,6 +43,3 @@ CREATE TABLE transactions (
   sender_user_id INTEGER,
   deposit BOOLEAN
 );
-
-DENY DELETE ON Object::transactions
-GO;

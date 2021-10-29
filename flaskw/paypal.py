@@ -8,7 +8,7 @@ from paypalrestsdk import Payment
 from paypalrestsdk import Authorization
 from flask import redirect, flash, jsonify, url_for
 import paypalrestsdk
-from flaskw import db
+from flaskw import sql as sql
 from paypalpayoutssdk.core import PayPalHttpClient, SandboxEnvironment
 from paypalpayoutssdk.payouts import PayoutsPostRequest
 from paypalhttp import HttpError
@@ -35,9 +35,9 @@ def configure():
 Description: Function for handling the creating of a paypal payment from the user to the application's merchant account.
 @arg: request (POST request): The request containing the information about the submission.
 """
-def create_payment(request):
+def create_payment(request, db):
 
-    contract = db.get_contract(request.form['contractID'])
+    contract = sql.get_contract(request.form['contractID'], db)
 
     payment = paypalrestsdk.Payment({
         "intent": "sale",
@@ -90,10 +90,10 @@ Description: Function for handling the sending of a paypal payment from the appl
 @arg attempt_id (int): The id of the attempt that was successful.
 @return (str): Message of success or failure.
 """
-def make_payout(payouts_client, attempt_id):
+def make_payout(payouts_client, attempt_id, db):
 
-    attempt = db.get_attempt(attempt_id)
-    contract = db.get_contract(attempt['contract_id'])
+    attempt = sql.get_attempt(attempt_id, db)
+    contract = sql.get_contract(attempt['contract_id'], db)
 
     body = {
         "sender_batch_header": {

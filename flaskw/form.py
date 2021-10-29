@@ -7,13 +7,14 @@ import os
 import datetime
 import base64
 import json
-from flaskw import db as db
+from flaskw import sql as sql
 from flaskw import aws as aws
 from flaskw import paypal as paypal
 from flask import flash, render_template, redirect, url_for, session
 from werkzeug.security import check_password_hash, generate_password_hash
 from sqlite3 import IntegrityError
 import importlib.util
+from flask_mysqldb import MySQLdb
 
 ALLOWED_EXTENSIONS = {'java', 'zip', 'py'}
 
@@ -33,7 +34,7 @@ Description: The form view/handler for viewing a contract.
 @arg request (POST request): The request containing the information for the submittion.
 @return (template): The view contract template (auto updates upon success).
 """
-def view_contract_view(contract_id, request):
+def view_contract_view(contract_id, request, db):
     if request.method == 'POST':
         function_name = request.form['function_name']
         uploaded_file = request.files['file'] 
@@ -57,7 +58,7 @@ def view_contract_view(contract_id, request):
 
         if error is None:
             attempt_info = (contract_id, session['user_id'], 'attempt.' + uploaded_file_extension, function_name, payment_email)
-            attempt_id = db.insert_attempt(attempt_info)
+            attempt_id = sql.insert_attempt(attempt_info, db)
 
             contract_path = contract_files_dir + '/' + str(attempt_id)
 
@@ -77,7 +78,7 @@ def view_contract_view(contract_id, request):
                 error = 'Function name: ' + function_name + ' is not in your inputed file'
 
             if error is None:    
-                aws.create_lambda(contract_id, attempt_id, contract_files_dir)
+                aws.create_lambda(contract_id, attempt_id, contract_files_dir, db)
 
                 response = aws.execute_lambda(attempt_id)
                 payload = json.loads(response["Payload"].read())
@@ -89,7 +90,7 @@ def view_contract_view(contract_id, request):
                 aws.delete_lambda(attempt_id)
 
                 success = len(payload['failed_test_names']) == 0
-                db.add_result_to_attempt(attempt_id, str(payload['failed_test_names']), success)
+                sql.add_result_to_attempt(attempt_id, str(payload['failed_test_names']), success, db)
 
                 for test_name in payload['failed_test_names']:
                     flash(test_name + ' FAIL')
@@ -100,15 +101,15 @@ def view_contract_view(contract_id, request):
                     
             else:
                 flash(error)
-                db.delete_attempt(attempt_id)
+                sql.delete_attempt(attempt_id, db)
 
         else:
             flash(error)
 
 
     return render_template('contractView.html',
-                           contract=db.get_contract(contract_id),
-                           attempts=db.get_contract_attempts(contract_id))
+                           contract=sql.get_contract(contract_id, db),
+                           attempts=sql.get_contract_attempts(contract_id, db))
 
 
 """
@@ -116,7 +117,7 @@ Description: The form view/handler for creating a contract.
 @arg request (POST request): The request containing the information for the submittion.
 @return (template): The template for the create_contract_view if there is an error, else the table template.
 """
-def create_contract_view(request):
+def create_contract_view(request, db):
     if request.method == 'POST':
         title = request.form['title']
         description = request.form['description']
@@ -152,9 +153,9 @@ def create_contract_view(request):
 
             contract_info = (title, description, difficulty,
                              datetime.datetime.now(), expiration_date,
-                             session['user_id'], payout, 'test.' + uploaded_file_extension, None, None, None)
+                             session['user_id'], payout, 'test.' + uploaded_file_extension, None, None)
 
-            contract_id = db.insert_contract(contract_info)
+            contract_id = sql.insert_contract(contract_info, db)
 
             contract_files_folder = 'files/' + str(contract_id) + '_files'
             os.makedirs(contract_files_folder)
@@ -173,7 +174,7 @@ Description: THe form/view for registering a new account.
 @arg: request (POST request): The request containing the information about the submission.
 @return (template): The template for registration if there is an error, else the table template.
 """
-def register_user_view(request):
+def register_user_view(request, db):
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -187,8 +188,8 @@ def register_user_view(request):
 
         if error is None:
             try:
-                db.insert_user((username, generate_password_hash(password)))
-            except db.IntegrityError:
+                sql.insert_user((username, generate_password_hash(password)), db)
+            except MySQLdb._exceptions.IntegrityError:
                 error = f"User {username} is already registered."
             else:
                 return redirect(url_for("login"))
@@ -203,14 +204,14 @@ Description: THe form/view for loging into an account.
 @arg: request (POST request): The request containing the information about the submission.
 @return (template): The template for registration if there is an error, else the table template.
 """
-def login_user_view(request):
+def login_user_view(request, db):
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
 
         error = None
 
-        user = db.get_user(username)
+        user = sql.get_user(username, db)
 
         print(str(user))
 

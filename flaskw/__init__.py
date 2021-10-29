@@ -4,11 +4,11 @@ Description: Contains the initialization functions and endpoints of the flask ap
 """
 
 import os
-from flaskw import db as db
+from flaskw import sql as sql
 from flaskw import form as form
 from flaskw import paypal as paypal
-from flask import Flask, jsonify, request, render_template, redirect, url_for, flash, session
-from flaskext.mysql import MySQL
+from flask import Flask, jsonify, request, render_template, redirect, url_for, flash, session, g
+from flask_mysqldb import MySQL
 import datetime
 
 # export FLASK_APP=flaskw && export FLASK_ENV=development && flask run
@@ -26,18 +26,15 @@ def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
 
-    mysql = MySQL()
     app.config.from_mapping(
         SECRET_KEY='dev',
-        MYSQL_DATABASE_USER= 'root',
-        MYSQL_DATABASE_PASSWORD = 'x6978293',
-        MYSQL_DATABASE_HOST = 'localhost',
-        DATABASE = mysql
+        MYSQL_HOST='127.0.0.1',
+        MYSQL_USER='root',
+        MYSQL_PASSWORD='x6978293',
+        MYSQL_DB='blackbox_database'
     )
-    mysql.init_app(app)
 
-    # conn = mysql.get.connect()
-    # cursor =conn.cursor()
+    db = MySQL(app)
 
     payouts_client = paypal.configure()
 
@@ -60,7 +57,7 @@ def create_app(test_config=None):
     """
     @app.route('/create', methods=('GET', 'POST'))
     def create():
-        return form.create_contract_view(request)
+        return form.create_contract_view(request, db)
 
 
     """
@@ -69,7 +66,7 @@ def create_app(test_config=None):
     @app.route('/table')
     def table():
         return render_template('table.html',
-                               contracts=db.get_contracts(),
+                               contracts=sql.get_contracts(db),
                                session=session)
 
 
@@ -79,7 +76,7 @@ def create_app(test_config=None):
     """
     @app.route('/table/<int:id>', methods=('GET', 'POST'))
     def viewContract(id):
-        return form.view_contract_view(id, request)
+        return form.view_contract_view(id, request, db)
 
 
     """
@@ -89,7 +86,7 @@ def create_app(test_config=None):
     """
     @app.route('/delete/<int:id>', methods=('GET', 'POST'))
     def deleteContract(id):
-        db.delete_contract(id)
+        sql.delete_contract(id, db)
         return redirect(url_for('table'))
 
 
@@ -98,7 +95,7 @@ def create_app(test_config=None):
     """
     @app.route('/register', methods=('GET', 'POST'))
     def register(): 
-        return form.register_user_view(request)
+        return form.register_user_view(request, db)
 
 
     """
@@ -106,7 +103,7 @@ def create_app(test_config=None):
     """
     @app.route('/login', methods=('GET', 'POST'))
     def login():
-        return form.login_user_view(request)
+        return form.login_user_view(request, db)
 
 
     """
@@ -130,7 +127,7 @@ def create_app(test_config=None):
 
     @app.route('/paypal/payment', methods=['POST'])
     def payment():
-        return paypal.create_payment(request)
+        return paypal.create_payment(request, db)
 
 
     @app.route('/paypal/execute', methods=['POST'])
@@ -149,12 +146,9 @@ def create_app(test_config=None):
     def test():
         return 'test'
         
-    db.init_app(app)
+    sql.init_app(app)
 
     return app
-
-def get_mysql():
-    return mysql
 
 
 if __name__ == "__main__":

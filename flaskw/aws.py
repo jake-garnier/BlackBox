@@ -8,7 +8,7 @@ import json
 import yaml
 import os
 from zipfile import ZipFile
-from flaskw import db as db
+from flaskw import sql as sql
 import shutil
 
 
@@ -48,7 +48,7 @@ Description: Creates Lambda Function to execute an attempt
      (int) attempt_id: Identifies the attempt being executed
      (str) contract_files_path: The path to the files associated with the contract
 """
-def create_lambda(contract_id, attempt_id, contract_files_path):
+def create_lambda(contract_id, attempt_id, contract_files_path, db):
 
     # Initialize lambda and iam client
     lam_client = boto3.client('lambda')
@@ -60,10 +60,10 @@ def create_lambda(contract_id, attempt_id, contract_files_path):
         create_lambda_executer_iam_user()
         role = iam_client.get_role(RoleName='lambda_executer')
 
-    contract = db.get_contract(contract_id)
+    contract = sql.get_contract(contract_id, db)
     test_file = contract['test_filename']
 
-    attempt = db.get_attempt(attempt_id)
+    attempt = sql.get_attempt(attempt_id, db)
     attempt_file = attempt['attempt_filename']
     attempt_function_name = attempt['function_name']
 
