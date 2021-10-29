@@ -57,8 +57,6 @@ def insert_contract(contract_info, db):
         payment_id, payer_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
         contract_info
     )
-
-
     db.connection.commit()
 
     return cursor.lastrowid
@@ -247,6 +245,22 @@ def get_contract_attempts(contract_id, db):
         ret.append(parse_row(cursor.description, row))
     
     return ret
+
+def get_user_balance(user_id, db):
+    cursor = db.connection.cursor()
+    cursor.execute(
+        'SELECT SUM(amount) FROM transactions WHERE receiver_user_id = %s',
+        (user_id, )
+    )
+    received = cursor.fetchone()[0]
+
+    cursor.execute(
+        'SELECT SUM(amount) FROM transactions WHERE sender_user_id = %s',
+        (user_id, )
+    )
+    sent = cursor.fetchone()[0]
+
+    return received - sent
 
 """
 Description: Converts the row in a table to a dictionary representation.

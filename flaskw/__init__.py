@@ -144,7 +144,7 @@ def create_app(test_config=None):
     """
     @app.route('/test')
     def test():
-        return 'test'
+        return str(sql.get_user_balance(1, db))
         
     sql.init_app(app)
 
