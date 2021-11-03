@@ -7,9 +7,10 @@ import os
 from flaskw import sql as sql
 from flaskw import form as form
 from flaskw import paypal as paypal
+from flaskw import aws as aws
 from flask import Flask, jsonify, request, render_template, redirect, url_for, flash, session, g
 from flask_mysqldb import MySQL
-import datetime
+import boto3
 
 # export FLASK_APP=flaskw && export FLASK_ENV=development && flask run
 # Jake's computer's alias for above command is "bb"
@@ -28,8 +29,8 @@ def create_app(test_config=None):
 
     app.config.from_mapping(
         SECRET_KEY='dev',
-        MYSQL_HOST='127.0.0.1',
-        MYSQL_USER='root',
+        MYSQL_HOST='blackboxdatabase-1.cdnyxpurbpvu.us-east-2.rds.amazonaws.com',
+        MYSQL_USER='blackboxadmin',
         MYSQL_PASSWORD='x6978293',
         MYSQL_DB='blackbox_database'
     )
@@ -76,7 +77,7 @@ def create_app(test_config=None):
     """
     @app.route('/table/<int:id>', methods=('GET', 'POST'))
     def viewContract(id):
-        return form.view_contract_view(id, request, db)
+        return form.attempt_view(id, request, db)
 
 
     """
@@ -86,6 +87,7 @@ def create_app(test_config=None):
     """
     @app.route('/delete/<int:id>', methods=('GET', 'POST'))
     def deleteContract(id):
+        aws.delete_contract_resources(id, db)
         sql.delete_contract(id, db)
         return redirect(url_for('table'))
 
@@ -144,8 +146,19 @@ def create_app(test_config=None):
     """
     @app.route('/test')
     def test():
-        return str(sql.get_user_balance(1, db))
-        
+        s3_client = boto3.client('s3')
+        lam_client = boto3.client('lambda')
+        response = lam_client.add_permission(
+            FunctionName='3_lambda',
+            StatementId='2',
+            Action='lambda:InvokeFunction',
+            Principal='s3.amazonaws.com'
+        )
+        response = s3_client.put_bucket_notification_configuration(
+            Bucket='blackbox-contract-function3',
+            NotificationConfiguration= {'LambdaFunctionConfigurations':[{'LambdaFunctionArn': 'arn:aws:lambda:us-east-2:147315719954:function:3_lambda', 'Events': ['s3:ObjectCreated:*']}]})
+        return response
+
     sql.init_app(app)
 
     return app

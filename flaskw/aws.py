@@ -10,6 +10,7 @@ import os
 from zipfile import ZipFile
 from flaskw import sql as sql
 import shutil
+import io
 
 
 PYTHON_TESTING_TEMPLATE_PATH = 'flaskw/testingTemplates/pythonTestingTemplateLambda.py'
@@ -48,84 +49,106 @@ Description: Creates Lambda Function to execute an attempt
      (int) attempt_id: Identifies the attempt being executed
      (str) contract_files_path: The path to the files associated with the contract
 """
-def create_lambda(contract_id, attempt_id, contract_files_path, db):
+def create_lambda(contract_id, test_file, db):
 
     # Initialize lambda and iam client
     lam_client = boto3.client('lambda')
     iam_client = boto3.client('iam')
+    s3_client = boto3.client('s3')
 
     # Create the lambda iam user and role if it does not exist
-    role = iam_client.get_role(RoleName='lambda_executer')
-    if role is None:
+    try:
+        role = iam_client.get_role(RoleName='lambda_executer')
+    except:
         create_lambda_executer_iam_user()
         role = iam_client.get_role(RoleName='lambda_executer')
 
-    contract = sql.get_contract(contract_id, db)
-    test_file = contract['test_filename']
+    test_file_str = line_prepender(test_file.read().decode('utf-8'), 'from attempt import test_func')
 
-    attempt = sql.get_attempt(attempt_id, db)
-    attempt_file = attempt['attempt_filename']
-    attempt_function_name = attempt['function_name']
-
-    # Creates a temporaty file which imports the attempted function 
-    shutil.copyfile(contract_files_path + '/' + test_file, contract_files_path + '/tmp')
-    line_prepender(contract_files_path + '/tmp', 'from attempt import ' + attempt_function_name)
-
-    # Create a zip file containing the test_file with the appended import, the attempt file, and the testing template
+    # Create a zip file containing the test_file with the appended import and the testing template
     # which has the lambda handler function
-    zipObj = ZipFile(str(attempt_id) + '.zip', 'w')
-    zipObj.write(contract_files_path + '/tmp', test_file)
-    zipObj.write(contract_files_path + '/' + str(attempt_id) + '/' + attempt_file, attempt_file)
+    zipObj = ZipFile(str(contract_id) + '.zip', 'w')
+    zipObj.writestr('test_file.py', test_file_str)
     zipObj.write(PYTHON_TESTING_TEMPLATE_PATH, PYTHON_TESTING_TEMPLATE_NAME)
     zipObj.close()
 
     # Read in the zip file
-    with open(str(attempt_id) + '.zip', 'rb') as f: 
+    with open(str(contract_id) + '.zip', 'rb') as f: 
         code = f.read()
 
-    lam_client.create_function(
-        FunctionName=str(attempt_id) + '_lambda',
+    response = lam_client.create_function(
+        FunctionName=str(contract_id) + '_lambda',
         Runtime='python3.7',
         Role=role['Role']['Arn'],
         Handler=PYTHON_TESTING_TEMPLATE_HANDLER_PATH,
         Code={'ZipFile':code})
 
-    os.remove(str(attempt_id) + '.zip')
+    s3_client.create_bucket(
+        ACL='private',
+        Bucket='blackbox-contract-function' + str(contract_id),
+        CreateBucketConfiguration={
+            'LocationConstraint': 'us-east-2'
+        }
+    )
+
+    lam_client.add_permission(
+        FunctionName=str(contract_id) + '_lambda',
+        StatementId=str(contract_id),
+        Action='lambda:InvokeFunction',
+        Principal='s3.amazonaws.com',
+        SourceArn='arn:aws:s3:::' + 'blackbox-contract-function' + str(contract_id)
+    )
+
+    s3_client.put_bucket_notification_configuration(
+        Bucket='blackbox-contract-function' + str(contract_id),
+        NotificationConfiguration= {'LambdaFunctionConfigurations':[{'LambdaFunctionArn': response['FunctionArn'], 'Events': ['s3:ObjectCreated:*']}]})
+
+    os.remove(str(contract_id) + '.zip')
+
+    return {
+        's3': 'blackbox-contract-function' + str(contract_id),
+        'lambda': str(contract_id) + '_lambda'
+    }
 
 
 """
 Description: Executes the Lambda Function associated with the attempt ID
 @arg (int) attempt_id: Identifies the attempt being executed
 """
-def execute_lambda(attempt_id):
-    lam_client = boto3.client('lambda')
-
-    return lam_client.invoke(
-        FunctionName=str(attempt_id) + '_lambda',
-        InvocationType='RequestResponse',
-        LogType='Tail'
-    )
+def upload_attempt_to_s3(contract_id, attempt_file, db):
+    contract = sql.get_contract(contract_id, db)
+    s3 = boto3.resource('s3')
+    s3.meta.client.upload_file(attempt_file, contract['s3_bucket_name'], attempt_file)
 
 
 """
 Description: Deletes the Lambda Function associated with the attempt ID
 @arg (int) attempt_id: Identifies the attempt being deleted
 """
-def delete_lambda(attempt_id):
+def delete_lambda(name):
     lam_client = boto3.client('lambda')
 
     return lam_client.delete_function(
-        FunctionName=str(attempt_id) + '_lambda',
+        FunctionName=name,
     )
 
+def delete_s3(name):
+    s3 = boto3.resource('s3')
+    bucket = s3.Bucket(name)
+    bucket.objects.all().delete()
+    bucket.delete()    
+
+
+def delete_contract_resources(contract_id, db):
+    contract_info = sql.get_contract(contract_id, db)
+
+    delete_lambda(contract_info['lambda_name'])
+    delete_s3(contract_info['s3_bucket_name'])
 
 """
 Description: Prepends a line to the top of a file
 @arg (str) filename: The path to the file being prepended
      (str) line: The line being prepended
 """
-def line_prepender(filename, line):
-    with open(filename, 'r+') as f:
-        content = f.read()
-        f.seek(0, 0)
-        f.write(line.rstrip('\r\n') + '\n' + content)
+def line_prepender(file, line):
+    return line.rstrip('\r\n') + '\n' + file

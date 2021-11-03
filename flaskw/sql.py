@@ -158,6 +158,24 @@ def add_result_to_attempt(attempt_id, failed_tests, success, db):
 
 
 """
+Description: Adds the names of the s3 bucket and lambda function to the contract row.
+@arg (int) contract_id: The id of the contract.
+@arg (dict) aws_contract_info: dict with the s3 name under 's3' and lambda name under 'lambda'
+"""
+def add_aws_contract_info(contract_id, aws_contract_info, db):
+    cursor = db.connection.cursor()
+    cursor.execute(
+        'UPDATE contracts SET s3_bucket_name = %s WHERE id = %s',
+        (aws_contract_info['s3'], contract_id)
+    )
+    cursor.execute(
+        'UPDATE contracts SET lambda_name = %s WHERE id = %s',
+        (aws_contract_info['lambda'], contract_id)
+    )
+    db.connection.commit()
+
+
+"""
 Description: Gets a dictionary of the row's columns;
 @arg contract_id: The row id of the contract.
 @return (dict): The row's fields in dictionary form.

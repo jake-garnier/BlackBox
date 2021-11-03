@@ -4,6 +4,7 @@ Description: Contains functions which manage the various forms in the applicatio
 """
 
 import os
+import io
 import datetime
 import base64
 import json
@@ -34,9 +35,8 @@ Description: The form view/handler for viewing a contract.
 @arg request (POST request): The request containing the information for the submittion.
 @return (template): The view contract template (auto updates upon success).
 """
-def view_contract_view(contract_id, request, db):
+def attempt_view(contract_id, request, db):
     if request.method == 'POST':
-        function_name = request.form['function_name']
         uploaded_file = request.files['file'] 
         uploaded_file_extension = uploaded_file.filename.rsplit('.', 1)[1].lower()
         contract_files_dir = 'files/' + str(contract_id) + '_files'
@@ -53,51 +53,29 @@ def view_contract_view(contract_id, request, db):
             error = 'Attempt file is not a Java file'
         elif uploaded_file.filename is '':
             error = 'Attempt file has no name'
-        elif not os.path.isdir(contract_files_dir):
-            error = '{Internal Error} Contract does not have file directory'
 
         if error is None:
-            attempt_info = (contract_id, session['user_id'], 'attempt.' + uploaded_file_extension, function_name, payment_email)
+            attempt_info = (contract_id, session['user_id'], 'attempt.' + uploaded_file_extension, 'test_func', payment_email)
             attempt_id = sql.insert_attempt(attempt_info, db)
 
-            contract_path = contract_files_dir + '/' + str(attempt_id)
+            uploaded_filename = 'attempt_' + str(attempt_id) + '.' + uploaded_file_extension
+            uploaded_file.save(uploaded_filename)
 
-            os.makedirs(contract_files_dir + '/' + str(attempt_id))
-            uploaded_file.save(contract_path + '/' + 'attempt.' + uploaded_file_extension)
-
-            spec = importlib.util.spec_from_file_location("attempt", contract_path + '/' + 'attempt.' + uploaded_file_extension)
+            spec = importlib.util.spec_from_file_location("attempt", uploaded_filename)
             attempt_test = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(attempt_test)
             
             try:
-                test_func = getattr(attempt_test, function_name)
+                test_func = getattr(attempt_test, 'test_func')
                 if not callable(test_func):
-                    error = 'Function name: ' + function_name + ' is not callable in your inputed file'
+                    error = 'test_func() is not callable in your inputed file'
                 
             except AttributeError:
-                error = 'Function name: ' + function_name + ' is not in your inputed file'
+                error = 'test_func() is not in your inputed file'
 
             if error is None:    
-                aws.create_lambda(contract_id, attempt_id, contract_files_dir, db)
+                aws.upload_attempt_to_s3(contract_id, uploaded_filename, db)
 
-                response = aws.execute_lambda(attempt_id)
-                payload = json.loads(response["Payload"].read())
-
-                logs_bytes = response['LogResult'].encode('ascii')
-                logs_base64_bytes = base64.b64decode(logs_bytes)
-                logs = logs_base64_bytes.decode('ascii')
-
-                aws.delete_lambda(attempt_id)
-
-                success = len(payload['failed_test_names']) == 0
-                sql.add_result_to_attempt(attempt_id, str(payload['failed_test_names']), success, db)
-
-                for test_name in payload['failed_test_names']:
-                    flash(test_name + ' FAIL')
-
-                if success:
-                    flash('Success!')
-                    return redirect(url_for('payout', id=attempt_id))
                     
             else:
                 flash(error)
@@ -157,11 +135,9 @@ def create_contract_view(request, db):
 
             contract_id = sql.insert_contract(contract_info, db)
 
-            contract_files_folder = 'files/' + str(contract_id) + '_files'
-            os.makedirs(contract_files_folder)
+            aws_contract_info = aws.create_lambda(contract_id, uploaded_file, db)
 
-            if uploaded_file.filename != '':
-                uploaded_file.save(contract_files_folder + '/' + 'test.' + uploaded_file_extension)
+            sql.add_aws_contract_info(contract_id, aws_contract_info, db)
 
             return redirect(url_for('paypal_create', id=contract_id))
 
@@ -212,8 +188,6 @@ def login_user_view(request, db):
         error = None
 
         user = sql.get_user(username, db)
-
-        print(str(user))
 
         if user is None:
             error = 'Incorrect username.'
