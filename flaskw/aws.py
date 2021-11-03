@@ -11,6 +11,8 @@ from zipfile import ZipFile
 from flaskw import sql as sql
 import shutil
 import io
+from random import randint
+from botocore.exceptions import ClientError
 
 
 PYTHON_TESTING_TEMPLATE_PATH = 'flaskw/testingTemplates/pythonTestingTemplateLambda.py'
@@ -44,12 +46,14 @@ def create_lambda_executer_iam_user():
 
 
 """
-Description: Creates Lambda Function to execute an attempt
+Description: Creates Lambda Function for a contract.
 @arg (int) contract_id: Identifies the associated contract
-     (int) attempt_id: Identifies the attempt being executed
      (str) contract_files_path: The path to the files associated with the contract
 """
-def create_lambda(contract_id, test_file, db):
+def create_lambda(contract_id, test_file):
+
+    # Initialize aws resources names
+    #s3_bucket_name = "blackbox-contract-bucket-" + str(contract_id) + "-" + 
 
     # Initialize lambda and iam client
     lam_client = boto3.client('lambda')
@@ -81,15 +85,24 @@ def create_lambda(contract_id, test_file, db):
         Runtime='python3.7',
         Role=role['Role']['Arn'],
         Handler=PYTHON_TESTING_TEMPLATE_HANDLER_PATH,
-        Code={'ZipFile':code})
-
-    s3_client.create_bucket(
-        ACL='private',
-        Bucket='blackbox-contract-function' + str(contract_id),
-        CreateBucketConfiguration={
-            'LocationConstraint': 'us-east-2'
-        }
+        Code={'ZipFile':code}
     )
+
+    while True:
+        s3_name = "blackbox-contract-bucket-" + str(random_with_N_digits(5))
+        try:
+            s3_client.create_bucket(
+                ACL='private',
+                Bucket=s3_name,
+                CreateBucketConfiguration={
+                    'LocationConstraint': 'us-east-2'
+                }
+            )
+            break
+        except ClientError as e:
+            error = e.response['Error']['Code']
+            if error not in ["BucketAlreadyExists", "BucketAlreadyOwnedByYou"]:
+                break
 
     lam_client.add_permission(
         FunctionName=str(contract_id) + '_lambda',
@@ -101,7 +114,8 @@ def create_lambda(contract_id, test_file, db):
 
     s3_client.put_bucket_notification_configuration(
         Bucket='blackbox-contract-function' + str(contract_id),
-        NotificationConfiguration= {'LambdaFunctionConfigurations':[{'LambdaFunctionArn': response['FunctionArn'], 'Events': ['s3:ObjectCreated:*']}]})
+        NotificationConfiguration= {'LambdaFunctionConfigurations':[{'LambdaFunctionArn': response['FunctionArn'], 'Events': ['s3:ObjectCreated:*']}]}
+    )
 
     os.remove(str(contract_id) + '.zip')
 
@@ -112,26 +126,32 @@ def create_lambda(contract_id, test_file, db):
 
 
 """
-Description: Executes the Lambda Function associated with the attempt ID
-@arg (int) attempt_id: Identifies the attempt being executed
+Description: Executes the Lambda Function associated with the attempt ID.
+@arg (int) attempt_id: Identifies the attempt being executed.
 """
 def upload_attempt_to_s3(contract_id, attempt_file, db):
     contract = sql.get_contract(contract_id, db)
+
     s3 = boto3.resource('s3')
     s3.meta.client.upload_file(attempt_file, contract['s3_bucket_name'], attempt_file)
 
 
 """
-Description: Deletes the Lambda Function associated with the attempt ID
-@arg (int) attempt_id: Identifies the attempt being deleted
+Description: Deletes the Lambda Function associated with the inputted name.
+@arg (int) attempt_id: The name of the Lambda Function being deleted.
 """
 def delete_lambda(name):
     lam_client = boto3.client('lambda')
 
-    return lam_client.delete_function(
+    lam_client.delete_function(
         FunctionName=name,
     )
 
+
+"""
+Description: Deletes the s3 bucket associated with the inputted name.
+@arg (str) name: The name of the s3 bucket being deleted.
+"""
 def delete_s3(name):
     s3 = boto3.resource('s3')
     bucket = s3.Bucket(name)
@@ -139,11 +159,16 @@ def delete_s3(name):
     bucket.delete()    
 
 
+"""
+Description: Deletes the aws resources associated with the contract.
+@arg (int) contract_id: The id of the associated contract.
+"""
 def delete_contract_resources(contract_id, db):
     contract_info = sql.get_contract(contract_id, db)
 
     delete_lambda(contract_info['lambda_name'])
     delete_s3(contract_info['s3_bucket_name'])
+
 
 """
 Description: Prepends a line to the top of a file
@@ -152,3 +177,8 @@ Description: Prepends a line to the top of a file
 """
 def line_prepender(file, line):
     return line.rstrip('\r\n') + '\n' + file
+
+def random_with_N_digits(n):
+    range_start = 10**(n-1)
+    range_end = (10**n)-1
+    return randint(range_start, range_end)

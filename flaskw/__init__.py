@@ -146,18 +146,7 @@ def create_app(test_config=None):
     """
     @app.route('/test')
     def test():
-        s3_client = boto3.client('s3')
-        lam_client = boto3.client('lambda')
-        response = lam_client.add_permission(
-            FunctionName='3_lambda',
-            StatementId='2',
-            Action='lambda:InvokeFunction',
-            Principal='s3.amazonaws.com'
-        )
-        response = s3_client.put_bucket_notification_configuration(
-            Bucket='blackbox-contract-function3',
-            NotificationConfiguration= {'LambdaFunctionConfigurations':[{'LambdaFunctionArn': 'arn:aws:lambda:us-east-2:147315719954:function:3_lambda', 'Events': ['s3:ObjectCreated:*']}]})
-        return response
+        return "test"
 
     sql.init_app(app)
 
