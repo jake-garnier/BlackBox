@@ -10,7 +10,7 @@ from flaskw import paypal as paypal
 from flaskw import aws as aws
 from flask import Flask, jsonify, request, render_template, redirect, url_for, flash, session, g
 from flask_mysqldb import MySQL
-import boto3
+from flaskw import container as container
 
 # export FLASK_APP=flaskw && export FLASK_ENV=development && flask run
 # Jake's computer's alias for above command is "bb"
@@ -146,7 +146,10 @@ def create_app(test_config=None):
     """
     @app.route('/test')
     def test():
-        return "test"
+        contract_id = 1
+        repositoryName = 'blackbox_contract' + str(contract_id)
+        uri = aws.create_ecr_repository(repositoryName)
+        return container.build_image(repositoryName, uri)
 
     sql.init_app(app)
 

@@ -13,6 +13,7 @@ import shutil
 import io
 from random import randint
 from botocore.exceptions import ClientError
+from flaskw import constants as constants
 
 
 PYTHON_TESTING_TEMPLATE_PATH = 'flaskw/testingTemplates/pythonTestingTemplateLambda.py'
@@ -109,18 +110,18 @@ def create_lambda(contract_id, test_file):
         StatementId=str(contract_id),
         Action='lambda:InvokeFunction',
         Principal='s3.amazonaws.com',
-        SourceArn='arn:aws:s3:::' + 'blackbox-contract-function' + str(contract_id)
+        SourceArn='arn:aws:s3:::' + s3_name
     )
 
     s3_client.put_bucket_notification_configuration(
-        Bucket='blackbox-contract-function' + str(contract_id),
+        Bucket=s3_name,
         NotificationConfiguration= {'LambdaFunctionConfigurations':[{'LambdaFunctionArn': response['FunctionArn'], 'Events': ['s3:ObjectCreated:*']}]}
     )
 
     os.remove(str(contract_id) + '.zip')
 
     return {
-        's3': 'blackbox-contract-function' + str(contract_id),
+        's3': s3_name,
         'lambda': str(contract_id) + '_lambda'
     }
 
@@ -169,6 +170,18 @@ def delete_contract_resources(contract_id, db):
     delete_lambda(contract_info['lambda_name'])
     delete_s3(contract_info['s3_bucket_name'])
 
+"""
+Description: Creates an aws ecr repository
+@arg (str) repositoryName: The name of the repository being built
+@return (str): The uri of the built repository
+"""
+def create_ecr_repository(repositoryName):
+
+    ecr_client = boto3.client('ecr')
+    
+    return ecr_client.create_repository(
+        repositoryName=repositoryName
+    )['repository']['repositoryUri']
 
 """
 Description: Prepends a line to the top of a file

@@ -11,23 +11,17 @@ import json
 from flaskw import sql as sql
 from flaskw import aws as aws
 from flaskw import paypal as paypal
+from flaskw import container as container
 from flask import flash, render_template, redirect, url_for, session
 from werkzeug.security import check_password_hash, generate_password_hash
 from sqlite3 import IntegrityError
 import importlib.util
 from flask_mysqldb import MySQLdb
 
-ALLOWED_EXTENSIONS = {'java', 'zip', 'py'}
+ALLOWED_TEST_FILE_EXTENSIONS = {'py'}
+ALLOWED_ATTEMPT_FILE_EXTENSIONS = {'py'}
+ALLOWED_REQUIREMENTS_FILE_EXTENSIONS = {'txt'}
 
-
-"""
-Description: Checks to see if the filename's extension is supported.
-@arg filename (str): The filename being checked.
-@return (bool): True if the filename is supported.
-"""
-def allowed_file(filename):
-    return '.' in filename and \
-        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 """
 Description: The form view/handler for viewing a contract.
@@ -37,8 +31,8 @@ Description: The form view/handler for viewing a contract.
 """
 def attempt_view(contract_id, request, db):
     if request.method == 'POST':
-        uploaded_file = request.files['file'] 
-        uploaded_file_extension = uploaded_file.filename.rsplit('.', 1)[1].lower()
+        attempt_file = request.files['file'] 
+        attempt_file_extension = attempt_file.filename.rsplit('.', 1)[1].lower()
         contract_files_dir = 'files/' + str(contract_id) + '_files'
         payment_email = request.form['payment_email']
 
@@ -47,19 +41,19 @@ def attempt_view(contract_id, request, db):
         if 'user_id' not in session:
             flash('Please log in or register before creating a contract')
             return redirect(url_for('login'))
-        elif not uploaded_file:
+        elif not attempt_file:
             error = 'Attempt file is required'
-        elif not allowed_file(uploaded_file.filename):
+        elif attempt_file_extension in ALLOWED_ATTEMPT_FILE_EXTENSIONS:
             error = 'Attempt file is not a Java file'
-        elif uploaded_file.filename is '':
+        elif attempt_file.filename is '':
             error = 'Attempt file has no name'
 
         if error is None:
-            attempt_info = (contract_id, session['user_id'], 'attempt.' + uploaded_file_extension, 'test_func', payment_email)
+            attempt_info = (contract_id, session['user_id'], 'attempt.' + attempt_file_extension, payment_email)
             attempt_id = sql.insert_attempt(attempt_info, db)
 
-            uploaded_filename = 'attempt_' + str(attempt_id) + '.' + uploaded_file_extension
-            uploaded_file.save(uploaded_filename)
+            uploaded_filename = 'attempt_' + str(attempt_id) + '.' + attempt_file_extension
+            attempt_file.save(uploaded_filename)
 
             spec = importlib.util.spec_from_file_location("attempt", uploaded_filename)
             attempt_test = importlib.util.module_from_spec(spec)
@@ -102,8 +96,10 @@ def create_contract_view(request, db):
         difficulty = request.form['difficulty']
         expiration_date = request.form['expiration_date']
         payout = request.form['payout']
-        uploaded_file = request.files['file']
-        uploaded_file_extension = uploaded_file.filename.rsplit('.', 1)[1].lower()
+        test_file = request.files['test_file']
+        test_file_extension = test_file.filename.rsplit('.', 1)[1].lower()
+        requirements_file = request.files['requirements_file']
+        requirements_file_extension = requirements_file.filename.rsplit('.', 1)[1].lower()
 
         error = None
 
@@ -120,22 +116,33 @@ def create_contract_view(request, db):
             error = 'Expiration Date is required'
         elif not payout:
             error = 'Payout is required'
-        elif not uploaded_file:
+        elif not test_file:
             error = 'Test file is required'
-        elif not allowed_file(uploaded_file.filename):
-            error = 'Test file is not a Java file'
-        elif uploaded_file.filename is '':
+        elif test_file_extension not in ALLOWED_TEST_FILE_EXTENSIONS:
+            error = 'Test file extension ' + test_file_extension + ' is not allowed'
+        elif test_file.filename is '':
             error = 'Test file has no name'
+        elif not requirements_file:
+            error = 'Requirements file is required'
+        elif requirements_file_extension not in ALLOWED_REQUIREMENTS_FILE_EXTENSIONS:
+            error = 'Requirements file is not a .txt file'
+        elif requirements_file.filename is '':
+            error = 'Requirements file has no name'
 
         if error is None:
 
             contract_info = (title, description, difficulty,
                              datetime.datetime.now(), expiration_date,
-                             session['user_id'], payout, 'test.' + uploaded_file_extension, None, None)
+                             session['user_id'], payout, 'test.' + test_file_extension, None, None)
 
             contract_id = sql.insert_contract(contract_info, db)
 
-            aws_contract_info = aws.create_lambda(contract_id, uploaded_file, db)
+            repositoryName = 'blackbox_contract' + str(contract_id)
+            container.build_local_repository(requirements_file, test_file, repositoryName)
+            uri = aws.create_ecr_repository(repositoryName)
+            container.build_image(repositoryName, uri)
+
+            aws_contract_info = aws.create_lambda(contract_id, test_file)
 
             sql.add_aws_contract_info(contract_id, aws_contract_info, db)
 

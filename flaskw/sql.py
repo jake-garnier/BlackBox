@@ -70,8 +70,8 @@ Description: Inserts an attempt into the attempts table.
 def insert_attempt(attempt_info, db):
     cursor = db.connection.cursor()
     cursor.execute(
-        'INSERT INTO attempts (contract_id, creater_user_id, attempt_filename, function_name, payment_email) \
-        VALUES (%s, %s, %s, %s, %s)',
+        'INSERT INTO attempts (contract_id, creater_user_id, attempt_filename, payment_email) \
+        VALUES (%s, %s, %s, %s)',
         attempt_info
     )
     db.connection.commit()
