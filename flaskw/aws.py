@@ -7,6 +7,7 @@ import boto3
 import json
 import yaml
 import os
+import time
 from zipfile import ZipFile
 from flaskw import sql as sql
 import shutil
@@ -44,6 +45,68 @@ def create_lambda_executer_iam_user():
     # This role has the AWSLambdaBasicExecutionRole managed policy.
     iam_client.attach_role_policy(RoleName='lambda_executer', 
         PolicyArn='arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole')
+
+
+def create_lambda2(contract_id, uri, db):
+    lam_client = boto3.client('lambda')
+    iam_client = boto3.client('iam')
+    s3_client = boto3.client('s3')
+
+    # Create the lambda iam user and role if it does not exist
+    try:
+        role = iam_client.get_role(RoleName='lambda_executer')
+    except:
+        create_lambda_executer_iam_user()
+        role = iam_client.get_role(RoleName='lambda_executer')
+
+    response = lam_client.create_function(
+        PackageType='Image',
+        FunctionName=str(contract_id) + '_lambda',
+        Role=role['Role']['Arn'],
+        Code={'ImageUri':uri}
+    )
+
+    while True:
+        s3_name = "blackbox-contract-bucket-" + str(random_with_N_digits(5))
+        try:
+            s3_client.create_bucket(
+                ACL='private',
+                Bucket=s3_name,
+                CreateBucketConfiguration={
+                    'LocationConstraint': 'us-east-2'
+                }
+            )
+            break
+        except ClientError as e:
+            error = e.response['Error']['Code']
+            if error not in ["BucketAlreadyExists", "BucketAlreadyOwnedByYou"]:
+                break
+
+    print(s3_name)
+
+    lam_client.add_permission(
+        FunctionName=str(contract_id) + '_lambda',
+        StatementId=str(contract_id),
+        Action='lambda:InvokeFunction',
+        Principal='s3.amazonaws.com',
+        SourceArn='arn:aws:s3:::' + s3_name
+    )
+
+    while True:
+        try:
+            s3_client.put_bucket_notification_configuration(
+                Bucket=s3_name,
+                NotificationConfiguration= {'LambdaFunctionConfigurations':[{'LambdaFunctionArn': response['FunctionArn'], 'Events': ['s3:ObjectCreated:*']}]}
+            )
+            break
+        except ClientError as e:
+            time.sleep(10)
+
+    return {
+        's3': s3_name,
+        'lambda': str(contract_id) + '_lambda'
+    }
+
 
 
 """

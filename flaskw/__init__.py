@@ -11,6 +11,7 @@ from flaskw import aws as aws
 from flask import Flask, jsonify, request, render_template, redirect, url_for, flash, session, g
 from flask_mysqldb import MySQL
 from flaskw import container as container
+import boto3
 
 # export FLASK_APP=flaskw && export FLASK_ENV=development && flask run
 # Jake's computer's alias for above command is "bb"
@@ -146,10 +147,9 @@ def create_app(test_config=None):
     """
     @app.route('/test')
     def test():
-        contract_id = 1
-        repositoryName = 'blackbox_contract' + str(contract_id)
-        uri = aws.create_ecr_repository(repositoryName)
-        return container.build_image(repositoryName, uri)
+        return aws.create_lambda2(7, '147315719954.dkr.ecr.us-east-2.amazonaws.com/blackbox_contract7:latest', db)
+        # s3_client = boto3.client('s3')
+        # return s3_client.put_bucket_notification_configuration(Bucket='blackbox-contract-bucket-38748', NotificationConfiguration= {'LambdaFunctionConfigurations':[{'LambdaFunctionArn': 'arn:aws:lambda:us-east-2:147315719954:function:7_lambda', 'Events': ['s3:ObjectCreated:*']}]})
 
     sql.init_app(app)
 

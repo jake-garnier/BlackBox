@@ -45,8 +45,8 @@ Start of db manipulation functions
 
 """
 Description: Inserts a contract into the contracts table.
-@arg contract_info: (title, description, difficulty, creation_date,
-                     expiration_date, payout, test_filename, payment_id, payer_id).
+@arg contract_info: (title, _description, difficulty, creation_date,
+                     expiration_date, payout, test_filename, payment_id, payer_id, _status).
 @return (int): The row id of the inserted contract.
 """
 def insert_contract(contract_info, db):
@@ -54,7 +54,7 @@ def insert_contract(contract_info, db):
     cursor.execute(
         'INSERT INTO contracts (title, description, difficulty, \
         creation_date, expiration_date, creater_user_id, payout, test_filename, \
-        payment_id, payer_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
+        payment_id, payer_id, _status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
         contract_info
     )
     db.connection.commit()
@@ -93,6 +93,14 @@ def insert_user(user_info, db):
     db.connection.commit()
 
     return cursor.lastrowid
+
+def update_contract_status(contract_id, status, db):
+    cursor = db.connection.cursor()
+    cursor.execute(
+        'UPDATE contracts SET status = %s WHERE id = %s',
+        (status, contract_id)
+    )
+    db.connection.commit()
 
 
 """

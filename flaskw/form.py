@@ -139,10 +139,13 @@ def create_contract_view(request, db):
 
             repositoryName = 'blackbox_contract' + str(contract_id)
             container.build_local_repository(requirements_file, test_file, repositoryName)
+
             uri = aws.create_ecr_repository(repositoryName)
             container.build_image(repositoryName, uri)
 
-            aws_contract_info = aws.create_lambda(contract_id, test_file)
+            aws_contract_info = aws.create_lambda2(contract_id, uri, db)
+
+            # aws_contract_info = aws.create_lambda(contract_id, test_file)
 
             sql.add_aws_contract_info(contract_id, aws_contract_info, db)
 
