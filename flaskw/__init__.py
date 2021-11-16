@@ -128,16 +128,25 @@ def create_app(test_config=None):
         return render_template('paypal_create.html', id=id)
 
 
+    """
+    Description: Creates a paypal payment
+    """
     @app.route('/paypal/payment', methods=['POST'])
     def payment():
         return paypal.create_payment(request, db)
 
 
+    """
+    Description: Executes a paypal payment for the creation of a contract
+    """
     @app.route('/paypal/execute', methods=['POST'])
     def execute():
         return paypal.execute_payment(request)
 
-
+    """
+    Description: Make a payment for the specified user
+    @arg (int) id: The id of the user being payed
+    """
     @app.route('/paypal/payout/<int:id>'   )
     def payout(id):
         return paypal.make_payout(payouts_client, id)

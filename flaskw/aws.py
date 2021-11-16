@@ -47,7 +47,12 @@ def create_lambda_executer_iam_user():
         PolicyArn='arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole')
 
 
-def create_lambda2(contract_id, uri, db):
+"""
+Description: Creates Lambda Function through ECR for a contract.
+@arg (int) contract_id: The id for the associated contract
+     (str) uri: The uri of the image in the ECR
+"""
+def create_lambda2(contract_id, uri):
     lam_client = boto3.client('lambda')
     iam_client = boto3.client('iam')
     s3_client = boto3.client('s3')
@@ -106,7 +111,6 @@ def create_lambda2(contract_id, uri, db):
         's3': s3_name,
         'lambda': str(contract_id) + '_lambda'
     }
-
 
 
 """
