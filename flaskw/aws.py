@@ -72,7 +72,7 @@ def create_lambda2(contract_id, uri):
     )
 
     while True:
-        s3_name = "blackbox-contract-bucket-" + str(random_with_N_digits(5))
+        s3_name = "blackbox-contract-" + str(contract_id) + "-bucket-" + str(random_with_N_digits(5))
         try:
             s3_client.create_bucket(
                 ACL='private',
