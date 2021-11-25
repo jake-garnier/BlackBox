@@ -43,13 +43,13 @@ def attempt_view(contract_id, request, db):
             return redirect(url_for('login'))
         elif not attempt_file:
             error = 'Attempt file is required'
-        elif attempt_file_extension in ALLOWED_ATTEMPT_FILE_EXTENSIONS:
-            error = 'Attempt file is not a Java file'
+        elif attempt_file_extension not in ALLOWED_ATTEMPT_FILE_EXTENSIONS:
+            error = 'Attempt file is not an allowed file type'
         elif attempt_file.filename is '':
             error = 'Attempt file has no name'
 
         if error is None:
-            attempt_info = (contract_id, session['user_id'], 'attempt.' + attempt_file_extension, payment_email)
+            attempt_info = (contract_id, session['user_id'], 'attempt.' + attempt_file_extension, payment_email, 'Created')
             attempt_id = sql.insert_attempt(attempt_info, db)
 
             uploaded_filename = 'attempt_' + str(attempt_id) + '.' + attempt_file_extension
@@ -68,7 +68,7 @@ def attempt_view(contract_id, request, db):
                 error = 'test_func() is not in your inputed file'
 
             if error is None:    
-                aws.upload_attempt_to_s3(contract_id, uploaded_filename, db)
+                aws.upload_attempt_to_s3(contract_id, attempt_id, uploaded_filename, db)
 
                     
             else:
@@ -133,7 +133,7 @@ def create_contract_view(request, db):
 
             contract_info = (title, description, difficulty,
                              datetime.datetime.now(), expiration_date,
-                             session['user_id'], payout, 'test.' + test_file_extension, None, None)
+                             session['user_id'], payout, 'test.' + test_file_extension, None, None, 'Created')
 
             contract_id = sql.insert_contract(contract_info, db)
 
@@ -143,7 +143,7 @@ def create_contract_view(request, db):
             uri = aws.create_ecr_repository(repositoryName)
             container.build_image(repositoryName, uri)
 
-            aws_contract_info = aws.create_lambda2(contract_id, uri, db)
+            aws_contract_info = aws.create_lambda2(contract_id, uri)
 
             # aws_contract_info = aws.create_lambda(contract_id, test_file)
 

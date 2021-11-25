@@ -38,6 +38,7 @@
     <th>Contract ID</th>
     <th>Creater ID</th>
     <th>Filename</th>
+    <th>Status</th>
     <th>Ran</th>
     <th>Success</th>
     <th>Failed Tests</th>
@@ -50,6 +51,7 @@
     <td>{{ attempt['contract_id'] }}</td>
     <td>{{ attempt['creater_user_id'] }}</td>
     <td>{{ attempt['attempt_filename'] }}</td>
+    <td>{{ attempt['_status'] }}</td>
     <td>{{ attempt['ran'] }}</td>
     <td>{{ attempt['success'] }}</td>
     <td>{{ attempt['failed_tests'] }}</td>
@@ -67,6 +69,7 @@
     <th>Contract ID</th>
     <th>Creater ID</th>
     <th>Filename</th>
+    <th>Status</th>
     <th>Ran</th>
     <th>Success</th>
     <th>Failed Tests</th>
@@ -74,11 +77,12 @@
     <th>Payment Email</th>
   </tr>
 {% for attempt in attempts %}
-  {% if session['user_id'] == contract[2] %}
+  {% if session['user_id'] == attempt['contract_id'] %}
     <td>{{ attempt['id'] }}</td>
     <td>{{ attempt['contract_id'] }}</td>
     <td>{{ attempt['creater_user_id'] }}</td>
     <td>{{ attempt['attempt_filename'] }}</td>
+    <td>{{ attempt['_status'] }}</td>
     <td>{{ attempt['ran'] }}</td>
     <td>{{ attempt['success'] }}</td>
     <td>{{ attempt['failed_tests'] }}</td>

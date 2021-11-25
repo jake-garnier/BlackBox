@@ -8,6 +8,7 @@ from flaskw import sql as sql
 from flaskw import form as form
 from flaskw import paypal as paypal
 from flaskw import aws as aws
+from flaskw import constants as constants
 from flask import Flask, jsonify, request, render_template, redirect, url_for, flash, session, g
 from flask_mysqldb import MySQL
 from flaskw import container as container
@@ -30,10 +31,10 @@ def create_app(test_config=None):
 
     app.config.from_mapping(
         SECRET_KEY='dev',
-        MYSQL_HOST='blackboxdatabase-1.cdnyxpurbpvu.us-east-2.rds.amazonaws.com',
-        MYSQL_USER='blackboxadmin',
-        MYSQL_PASSWORD='x6978293',
-        MYSQL_DB='blackbox_database'
+        MYSQL_HOST=constants.mysql_host,
+        MYSQL_USER=constants.mysql_user,
+        MYSQL_PASSWORD=constants.mysql_password,
+        MYSQL_DB=constants.mysql_db
     )
 
     db = MySQL(app)
@@ -156,10 +157,8 @@ def create_app(test_config=None):
     """
     @app.route('/test')
     def test():
-        return aws.create_lambda2(7, '147315719954.dkr.ecr.us-east-2.amazonaws.com/blackbox_contract7:latest', db)
-        # s3_client = boto3.client('s3')
-        # return s3_client.put_bucket_notification_configuration(Bucket='blackbox-contract-bucket-38748', NotificationConfiguration= {'LambdaFunctionConfigurations':[{'LambdaFunctionArn': 'arn:aws:lambda:us-east-2:147315719954:function:7_lambda', 'Events': ['s3:ObjectCreated:*']}]})
-
+        return container.delete_all_buckets()
+        
     sql.init_app(app)
 
     return app

@@ -51,3 +51,16 @@ def build_local_repository(requirements_file, test_file, repositoryName):
     copyfile('/Users/jakegarnier/home/blackBoxFlask/flaskw/testingTemplates/pythonTestingTemplateLambda.py', repositoryName + '/app.py')
     copyfile('/Users/jakegarnier/home/blackBoxFlask/flaskw/lambda/Dockerfile', repositoryName + '/Dockerfile')
 
+def delete_all_buckets():
+
+    s3_client = boto3.client('s3')
+
+    buckets = s3_client.list_buckets()
+
+    bucket_names = []
+
+    for bucket in buckets['Buckets']:
+        s3_client.delete_bucket(Bucket=bucket['Name'])
+        bucket_names.append(bucket['Name'])
+
+    return ("Deleted: " + str(bucket_names))

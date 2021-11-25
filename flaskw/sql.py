@@ -52,7 +52,7 @@ Description: Inserts a contract into the contracts table.
 def insert_contract(contract_info, db):
     cursor = db.connection.cursor()
     cursor.execute(
-        'INSERT INTO contracts (title, description, difficulty, \
+        'INSERT INTO contracts (title, _description, difficulty, \
         creation_date, expiration_date, creater_user_id, payout, test_filename, \
         payment_id, payer_id, _status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
         contract_info
@@ -64,14 +64,14 @@ def insert_contract(contract_info, db):
 
 """
 Description: Inserts an attempt into the attempts table.
-@arg attempt_info: (contract_id, creater_user_id, attempt_filename, function_name, payment_email).
+@arg attempt_info: (contract_id, creater_user_id, attempt_filename, function_name, payment_email, _status).
 @return (int): The row id of the inserted attempt.
 """
 def insert_attempt(attempt_info, db):
     cursor = db.connection.cursor()
     cursor.execute(
-        'INSERT INTO attempts (contract_id, creater_user_id, attempt_filename, payment_email) \
-        VALUES (%s, %s, %s, %s)',
+        'INSERT INTO attempts (contract_id, creater_user_id, attempt_filename, payment_email, _status) \
+        VALUES (%s, %s, %s, %s, %s)',
         attempt_info
     )
     db.connection.commit()

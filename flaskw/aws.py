@@ -68,7 +68,7 @@ def create_lambda2(contract_id, uri):
         PackageType='Image',
         FunctionName=str(contract_id) + '_lambda',
         Role=role['Role']['Arn'],
-        Code={'ImageUri':uri}
+        Code={'ImageUri':uri+':latest'}
     )
 
     while True:
@@ -87,10 +87,8 @@ def create_lambda2(contract_id, uri):
             if error not in ["BucketAlreadyExists", "BucketAlreadyOwnedByYou"]:
                 break
 
-    print(s3_name)
-
     lam_client.add_permission(
-        FunctionName=str(contract_id) + '_lambda',
+        FunctionName='blackbox_attempt_handler',
         StatementId=str(contract_id),
         Action='lambda:InvokeFunction',
         Principal='s3.amazonaws.com',
@@ -101,7 +99,7 @@ def create_lambda2(contract_id, uri):
         try:
             s3_client.put_bucket_notification_configuration(
                 Bucket=s3_name,
-                NotificationConfiguration= {'LambdaFunctionConfigurations':[{'LambdaFunctionArn': response['FunctionArn'], 'Events': ['s3:ObjectCreated:*']}]}
+                NotificationConfiguration= {'LambdaFunctionConfigurations':[{'LambdaFunctionArn': constants.attempt_handler_arn, 'Events': ['s3:ObjectCreated:*']}]}
             )
             break
         except ClientError as e:
@@ -197,11 +195,13 @@ def create_lambda(contract_id, test_file):
 Description: Executes the Lambda Function associated with the attempt ID.
 @arg (int) attempt_id: Identifies the attempt being executed.
 """
-def upload_attempt_to_s3(contract_id, attempt_file, db):
+def upload_attempt_to_s3(contract_id, attempt_id, attempt_file, db):
     contract = sql.get_contract(contract_id, db)
 
+    key = "attempt_" + str(attempt_id)
+
     s3 = boto3.resource('s3')
-    s3.meta.client.upload_file(attempt_file, contract['s3_bucket_name'], attempt_file)
+    s3.meta.client.upload_file(attempt_file, contract['s3_bucket_name'], key)
 
 
 """
