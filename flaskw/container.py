@@ -3,7 +3,7 @@ import boto3
 import base64
 from flaskw import constants as constants
 import os
-from shutil import copyfile
+from shutil import copyfile, rmtree
 
 # docker build -t jakegarnier/test2 .
 # docker manifest create jakegarnier/test2 --amend jakegarnier/test2
@@ -39,6 +39,8 @@ def build_image(path, uri):
 
     for line in docker_client.images.push(repository=uri, stream=True, decode=True):
         print(line)
+
+    rmtree(path)
 
     return 'Success'
 

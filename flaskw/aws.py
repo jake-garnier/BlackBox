@@ -21,13 +21,16 @@ PYTHON_TESTING_TEMPLATE_PATH = 'flaskw/testingTemplates/pythonTestingTemplateLam
 PYTHON_TESTING_TEMPLATE_NAME = 'pythonTestingTemplateLambda.py'
 PYTHON_TESTING_TEMPLATE_HANDLER_PATH = 'pythonTestingTemplateLambda.lambda_handler'
 
+lam_client = boto3.client('lambda')
+iam_client = boto3.client('iam')
+s3_client  = boto3.client('s3')
+ecr_client = boto3.client('ecr')
 
 """
 Description: Creates the lambda_executer role that has the permission to create and run lambda functions.
 I believe it errors out if you run it and the role is already created.
 """
 def create_lambda_executer_iam_user():
-    iam_client = boto3.client('iam')
 
     basic_role = """
     Version: '2012-10-17'
@@ -46,8 +49,6 @@ def create_lambda_executer_iam_user():
     iam_client.attach_role_policy(RoleName='lambda_executer', 
         PolicyArn='arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole')
 
-    
-
 
 """
 Description: Creates Lambda Function through ECR for a contract.
@@ -55,9 +56,6 @@ Description: Creates Lambda Function through ECR for a contract.
      (str) uri: The uri of the image in the ECR
 """
 def create_lambda2(contract_id, uri):
-    lam_client = boto3.client('lambda')
-    iam_client = boto3.client('iam')
-    s3_client = boto3.client('s3')
 
     # Create the lambda iam user and role if it does not exist
     try:
@@ -112,87 +110,6 @@ def create_lambda2(contract_id, uri):
         'lambda': str(contract_id) + '_lambda'
     }
 
-
-"""
-Description: Creates Lambda Function for a contract.
-@arg (int) contract_id: Identifies the associated contract
-     (str) contract_files_path: The path to the files associated with the contract
-"""
-def create_lambda(contract_id, test_file):
-
-    # Initialize aws resources names
-    #s3_bucket_name = "blackbox-contract-bucket-" + str(contract_id) + "-" + 
-
-    # Initialize lambda and iam client
-    lam_client = boto3.client('lambda')
-    iam_client = boto3.client('iam')
-    s3_client = boto3.client('s3')
-
-    # Create the lambda iam user and role if it does not exist
-    try:
-        role = iam_client.get_role(RoleName='lambda_executer')
-    except:
-        create_lambda_executer_iam_user()
-        role = iam_client.get_role(RoleName='lambda_executer')
-
-    test_file_str = line_prepender(test_file.read().decode('utf-8'), 'from attempt import test_func')
-
-    # Create a zip file containing the test_file with the appended import and the testing template
-    # which has the lambda handler function
-    zipObj = ZipFile(str(contract_id) + '.zip', 'w')
-    zipObj.writestr('test_file.py', test_file_str)
-    zipObj.write(PYTHON_TESTING_TEMPLATE_PATH, PYTHON_TESTING_TEMPLATE_NAME)
-    zipObj.close()
-
-    # Read in the zip file
-    with open(str(contract_id) + '.zip', 'rb') as f: 
-        code = f.read()
-
-    response = lam_client.create_function(
-        FunctionName=str(contract_id) + '_lambda',
-        Runtime='python3.7',
-        Role=role['Role']['Arn'],
-        Handler=PYTHON_TESTING_TEMPLATE_HANDLER_PATH,
-        Code={'ZipFile':code}
-    )
-
-    while True:
-        s3_name = "blackbox-contract-bucket-" + str(random_with_N_digits(5))
-        try:
-            s3_client.create_bucket(
-                ACL='private',
-                Bucket=s3_name,
-                CreateBucketConfiguration={
-                    'LocationConstraint': 'us-east-2'
-                }
-            )
-            break
-        except ClientError as e:
-            error = e.response['Error']['Code']
-            if error not in ["BucketAlreadyExists", "BucketAlreadyOwnedByYou"]:
-                break
-
-    lam_client.add_permission(
-        FunctionName=str(contract_id) + '_lambda',
-        StatementId=str(contract_id),
-        Action='lambda:InvokeFunction',
-        Principal='s3.amazonaws.com',
-        SourceArn='arn:aws:s3:::' + s3_name
-    )
-
-    s3_client.put_bucket_notification_configuration(
-        Bucket=s3_name,
-        NotificationConfiguration= {'LambdaFunctionConfigurations':[{'LambdaFunctionArn': response['FunctionArn'], 'Events': ['s3:ObjectCreated:*']}]}
-    )
-
-    os.remove(str(contract_id) + '.zip')
-
-    return {
-        's3': s3_name,
-        'lambda': str(contract_id) + '_lambda'
-    }
-
-
 """
 Description: Executes the Lambda Function associated with the attempt ID.
 @arg (int) attempt_id: Identifies the attempt being executed.
@@ -205,13 +122,14 @@ def upload_attempt_to_s3(contract_id, attempt_id, attempt_file, db):
     s3 = boto3.resource('s3')
     s3.meta.client.upload_file(attempt_file, contract['s3_bucket_name'], key)
 
+    os.remove(key)
+
 
 """
 Description: Deletes the Lambda Function associated with the inputted name.
 @arg (int) attempt_id: The name of the Lambda Function being deleted.
 """
 def delete_lambda(name):
-    lam_client = boto3.client('lambda')
 
     lam_client.delete_function(
         FunctionName=name,
@@ -245,8 +163,6 @@ Description: Creates an aws ecr repository
 @return (str): The uri of the built repository
 """
 def create_ecr_repository(repositoryName):
-
-    ecr_client = boto3.client('ecr')
     
     return ecr_client.create_repository(
         repositoryName=repositoryName

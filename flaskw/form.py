@@ -145,8 +145,6 @@ def create_contract_view(request, db):
 
             aws_contract_info = aws.create_lambda2(contract_id, uri)
 
-            # aws_contract_info = aws.create_lambda(contract_id, test_file)
-
             sql.add_aws_contract_info(contract_id, aws_contract_info, db)
 
             return redirect(url_for('paypal_create', id=contract_id))

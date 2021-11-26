@@ -148,7 +148,7 @@ def create_app(test_config=None):
     Description: Make a payment for the specified user
     @arg (int) id: The id of the user being payed
     """
-    @app.route('/paypal/payout/<int:id>'   )
+    @app.route('/paypal/payout/<int:id>')
     def payout(id):
         return paypal.make_payout(payouts_client, id)
 

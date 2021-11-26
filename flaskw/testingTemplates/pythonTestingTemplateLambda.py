@@ -5,17 +5,7 @@ import sys
 
 def lambda_handler(event, context):
 
-    # bucket = event['Bucket']
-    # key    = event['Key']
-
     contents = event['Contents']
-
-    # try:
-    #     response = s3_client.get_object(Bucket=bucket, Key=key)
-    # except Exception as e:
-    #     print(e)
-    #     print('Error getting object {} from bucket {}. Make sure they exist and your bucket is in the same region as this function.'.format(key, bucket))
-    #     raise e
     
     with open('/tmp/attempt.py', 'w') as f:
         f.write(contents)
