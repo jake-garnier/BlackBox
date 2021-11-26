@@ -8,7 +8,7 @@ def lambda_handler(event, context):
     # bucket = event['Bucket']
     # key    = event['Key']
 
-    contents = event['Contents']
+    contents = event['ResponseBody']
 
     # try:
     #     response = s3_client.get_object(Bucket=bucket, Key=key)

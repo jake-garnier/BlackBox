@@ -46,6 +46,8 @@ def create_lambda_executer_iam_user():
     iam_client.attach_role_policy(RoleName='lambda_executer', 
         PolicyArn='arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole')
 
+    
+
 
 """
 Description: Creates Lambda Function through ECR for a contract.

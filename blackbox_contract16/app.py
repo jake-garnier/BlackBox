@@ -1,5 +1,6 @@
 import unittest
 import sys
+import boto3
 
 # s3_client = boto3.client('s3')
 
@@ -8,7 +9,7 @@ def lambda_handler(event, context):
     # bucket = event['Bucket']
     # key    = event['Key']
 
-    contents = event['Contents']
+    response = event['Response']
 
     # try:
     #     response = s3_client.get_object(Bucket=bucket, Key=key)
@@ -16,6 +17,10 @@ def lambda_handler(event, context):
     #     print(e)
     #     print('Error getting object {} from bucket {}. Make sure they exist and your bucket is in the same region as this function.'.format(key, bucket))
     #     raise e
+
+    filedata = response['Body'].read()
+    
+    contents = filedata.decode('utf-8')
     
     with open('/tmp/attempt.py', 'w') as f:
         f.write(contents)
