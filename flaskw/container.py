@@ -14,11 +14,12 @@ from shutil import copyfile, rmtree
 # docker tag c1b584db2b6f 147315719954.dkr.ecr.us-east-2.amazonaws.com/blackbox_lambda_repository
 # docker push 147315719954.dkr.ecr.us-east-2.amazonaws.com/blackbox_lambda_repository
 
+s3_client = boto3.client('s3', region_name='us-east-2')
+ecr_client = boto3.client('ecr', region_name='us-east-2')
 
 def build_image(path, uri):
 
     docker_client = docker.from_env()
-    ecr_client = boto3.client('ecr')
 
     token = ecr_client.get_authorization_token()
 
@@ -50,12 +51,12 @@ def build_local_repository(requirements_file, test_file, repositoryName):
     requirements_file.save(repositoryName + '/requirements.txt')
     test_file.save(repositoryName + '/test.py')
 
-    copyfile('/Users/jakegarnier/home/blackBoxFlask/flaskw/testingTemplates/pythonTestingTemplateLambda.py', repositoryName + '/app.py')
-    copyfile('/Users/jakegarnier/home/blackBoxFlask/flaskw/lambda/Dockerfile', repositoryName + '/Dockerfile')
+    cur_path = os.getcwd()
+
+    copyfile(cur_path + '/flaskw/testingTemplates/pythonTestingTemplateLambda.py', repositoryName + '/app.py')
+    copyfile(cur_path + '/flaskw/lambda/Dockerfile', repositoryName + '/Dockerfile')
 
 def delete_all_buckets():
-
-    s3_client = boto3.client('s3')
 
     buckets = s3_client.list_buckets()
 

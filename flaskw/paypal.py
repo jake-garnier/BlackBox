@@ -3,10 +3,7 @@ File Name: paypal.py
 Description: Contains functions which manage the various paypal functions which receive and disburse payments 
 and manage balances.
 """
-
-from paypalrestsdk import Payment
-from paypalrestsdk import Authorization
-from flask import redirect, flash, jsonify, url_for
+from flask import jsonify, url_for
 import paypalrestsdk
 from flaskw import sql as sql
 from paypalpayoutssdk.core import PayPalHttpClient, SandboxEnvironment

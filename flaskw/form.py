@@ -2,19 +2,13 @@
 File Name: form.py
 Description: Contains functions which manage the various forms in the application.
 """
-
-import os
-import io
 import datetime
-import base64
-import json
 from flaskw import sql as sql
 from flaskw import aws as aws
 from flaskw import paypal as paypal
 from flaskw import container as container
 from flask import flash, render_template, redirect, url_for, session
 from werkzeug.security import check_password_hash, generate_password_hash
-from sqlite3 import IntegrityError
 import importlib.util
 from flask_mysqldb import MySQLdb
 

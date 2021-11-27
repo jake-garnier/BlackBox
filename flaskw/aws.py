@@ -2,16 +2,12 @@
 File Name: aws.py
 Description: Contains the interaction between the application and aws.
 """
-
 import boto3
 import json
 import yaml
 import os
 import time
-from zipfile import ZipFile
 from flaskw import sql as sql
-import shutil
-import io
 from random import randint
 from botocore.exceptions import ClientError
 from flaskw import constants as constants
@@ -21,10 +17,10 @@ PYTHON_TESTING_TEMPLATE_PATH = 'flaskw/testingTemplates/pythonTestingTemplateLam
 PYTHON_TESTING_TEMPLATE_NAME = 'pythonTestingTemplateLambda.py'
 PYTHON_TESTING_TEMPLATE_HANDLER_PATH = 'pythonTestingTemplateLambda.lambda_handler'
 
-lam_client = boto3.client('lambda')
-iam_client = boto3.client('iam')
-s3_client  = boto3.client('s3')
-ecr_client = boto3.client('ecr')
+lam_client = boto3.client('lambda', region_name='us-east-2')
+iam_client = boto3.client('iam', region_name='us-east-2')
+s3_client  = boto3.client('s3', region_name='us-east-2')
+ecr_client = boto3.client('ecr', region_name='us-east-2')
 
 """
 Description: Creates the lambda_executer role that has the permission to create and run lambda functions.

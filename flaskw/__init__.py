@@ -12,7 +12,6 @@ from flaskw import constants as constants
 from flask import Flask, jsonify, request, render_template, redirect, url_for, flash, session, g
 from flask_mysqldb import MySQL
 from flaskw import container as container
-import boto3
 
 # export FLASK_APP=flaskw && export FLASK_ENV=development && flask run
 # Jake's computer's alias for above command is "bb"

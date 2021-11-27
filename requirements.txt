@@ -1,9 +1,11 @@
-paypal_payouts_sdk==1.0.0
-paypalhttp==1.0.1
-paypalrestsdk==1.13.1
-Werkzeug==1.0.1
+botocore==1.21.48
 Flask==1.1.2
-Flask_MySQLdb==0.2.0
-click==7.1.2
+paypalrestsdk==1.13.1
+paypalhttp==1.0.1
+paypal_payouts_sdk==1.0.0
+Werkzeug==1.0.1
 boto3==1.18.48
+click==7.1.2
+Flask_MySQLdb==0.2.0
+docker_py==1.10.6
 PyYAML==6.0

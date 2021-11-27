@@ -2,15 +2,11 @@
 File Name: sql.py
 Description: Contains functions which manage the SQLite3 database
 """
-
-import sqlite3
 import click
 from flask import current_app, g
 from flask.cli import with_appcontext
 import shutil
 import os
-from flask_mysqldb import MySQL
-from flaskw import __init__ as init
 
 # sudo mysql.server start 
 # sudo mysql.server stop
