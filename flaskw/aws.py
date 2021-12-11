@@ -11,16 +11,27 @@ from flaskw import sql as sql
 from random import randint
 from botocore.exceptions import ClientError
 from flaskw import constants as constants
-
+from flaskw import secret_constants as secret_constants
 
 PYTHON_TESTING_TEMPLATE_PATH = 'flaskw/testingTemplates/pythonTestingTemplateLambda.py'
 PYTHON_TESTING_TEMPLATE_NAME = 'pythonTestingTemplateLambda.py'
 PYTHON_TESTING_TEMPLATE_HANDLER_PATH = 'pythonTestingTemplateLambda.lambda_handler'
 
-lam_client = boto3.client('lambda', region_name='us-east-2')
-iam_client = boto3.client('iam', region_name='us-east-2')
-s3_client  = boto3.client('s3', region_name='us-east-2')
-ecr_client = boto3.client('ecr', region_name='us-east-2')
+lam_client = boto3.client('lambda', region_name='us-east-2', 
+    aws_access_key_id=secret_constants.AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=secret_constants.AWS_SECRET_ACCESS_KEY)
+
+iam_client = boto3.client('iam', region_name='us-east-2',
+    aws_access_key_id=secret_constants.AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=secret_constants.AWS_SECRET_ACCESS_KEY)
+
+s3_client  = boto3.client('s3', region_name='us-east-2',
+    aws_access_key_id=secret_constants.AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=secret_constants.AWS_SECRET_ACCESS_KEY)
+
+ecr_client = boto3.client('ecr', region_name='us-east-2',
+    aws_access_key_id=secret_constants.AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=secret_constants.AWS_SECRET_ACCESS_KEY)
 
 """
 Description: Creates the lambda_executer role that has the permission to create and run lambda functions.
@@ -51,7 +62,7 @@ Description: Creates Lambda Function through ECR for a contract.
 @arg (int) contract_id: The id for the associated contract
      (str) uri: The uri of the image in the ECR
 """
-def create_lambda2(contract_id, uri):
+def create_lambda(contract_id, uri):
 
     # Create the lambda iam user and role if it does not exist
     try:
@@ -95,7 +106,12 @@ def create_lambda2(contract_id, uri):
         try:
             s3_client.put_bucket_notification_configuration(
                 Bucket=s3_name,
-                NotificationConfiguration= {'LambdaFunctionConfigurations':[{'LambdaFunctionArn': constants.attempt_handler_arn, 'Events': ['s3:ObjectCreated:*']}]}
+                NotificationConfiguration= {
+                    'LambdaFunctionConfigurations':[{
+                        'LambdaFunctionArn': constants.attempt_handler_arn,
+                        'Events': ['s3:ObjectCreated:*']
+                    }]
+                }
             )
             break
         except ClientError as e:

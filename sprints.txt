@@ -1,0 +1,32 @@
+Sprint 1 (12/13/2021 - 12/27/2021)
+    1. ** Figure out how to build a docker container inside of a container
+    2. *** Allow user to use their own docker file
+    4. ** Implement the marketplace payment system
+    5. **** Implement the front end of the application
+    7. **** Implement a code viewer/IDE that allows for highlighting of shown tests/comments
+    8. *** Allow for additional files with functions that can be called by the user
+    9. *** Incorporate the buissiness (Delaware C-corp)
+
+    Total: 21
+
+Sprint 2 (12/27/2021 - 01/10/2022)
+    3. ** Show the user performance metrics
+    10. *** Python command line package or vscode extension for receiving and completing contracts
+    11. ** Improve the way contracts are described by the creater
+    12. *** Allow for sorting of the table base on the column or search criteria
+    13. ** Allow for receiving emails when certain contracts are created or completed
+    14. *** Create a profile page
+    15. *** Add login Authetication
+    16. ** Allow for refunds when cancelling contracts
+    17. * Remove expiration date from form
+
+    Total: 21
+
+Sprint 3 (01/10/2022 - 01/24/2022)
+    18. ** Improve database (Change ids to actually correspond to other tables)
+    19. ** Allow the contract creater to receive the function file when a contract is created
+    20. **** Figure out how to run other languages
+    21. *** Figure out how to send errors without showing the test_split
+    22. ** Make the test file read only so the attempter can't print it out
+
+    Total: 13

@@ -2,6 +2,7 @@ import docker
 import boto3
 import base64
 from flaskw import constants as constants
+from flaskw import secret_constants as secret_constants
 import os
 from shutil import copyfile, rmtree
 
@@ -14,10 +15,18 @@ from shutil import copyfile, rmtree
 # docker tag c1b584db2b6f 147315719954.dkr.ecr.us-east-2.amazonaws.com/blackbox_lambda_repository
 # docker push 147315719954.dkr.ecr.us-east-2.amazonaws.com/blackbox_lambda_repository
 
-s3_client = boto3.client('s3', region_name='us-east-2')
-ecr_client = boto3.client('ecr', region_name='us-east-2')
+s3_client = boto3.client('s3', region_name='us-east-2',
+    aws_access_key_id=secret_constants.AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=secret_constants.AWS_SECRET_ACCESS_KEY)
+
+ecr_client = boto3.client('ecr', region_name='us-east-2',
+    aws_access_key_id=secret_constants.AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=secret_constants.AWS_SECRET_ACCESS_KEY)
 
 def build_image(path, uri):
+
+    if os.path.exists('~/.docker/config.json'):
+        os.remove('~/.docker/config.json')
 
     docker_client = docker.from_env()
 
@@ -25,6 +34,7 @@ def build_image(path, uri):
 
     username, password = base64.b64decode(token['authorizationData'][0]['authorizationToken']).decode().split(':')
     registry = token['authorizationData'][0]['proxyEndpoint'].replace("https://", "")
+
 
     # Requires ~/.docker/config.json is deleted
     docker_client.login(
@@ -67,3 +77,15 @@ def delete_all_buckets():
         bucket_names.append(bucket['Name'])
 
     return ("Deleted: " + str(bucket_names))
+
+def printDirectory(startpath):
+    ret = ''
+    for root, dirs, files in os.walk(startpath):
+        level = root.replace(startpath, '').count(os.sep)
+        indent = ' ' * 4 * (level)
+        ret = ret + '{}{}/'.format(indent, os.path.basename(root)) + '\n'
+        subindent = ' ' * 4 * (level + 1)
+        for f in files:
+            ret = ret + '{}{}'.format(subindent, f) + '\n'
+
+    return ret

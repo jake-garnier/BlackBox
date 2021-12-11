@@ -137,7 +137,7 @@ def create_contract_view(request, db):
             uri = aws.create_ecr_repository(repositoryName)
             container.build_image(repositoryName, uri)
 
-            aws_contract_info = aws.create_lambda2(contract_id, uri)
+            aws_contract_info = aws.create_lambda(contract_id, uri)
 
             sql.add_aws_contract_info(contract_id, aws_contract_info, db)
 

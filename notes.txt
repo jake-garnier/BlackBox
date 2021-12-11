@@ -1,0 +1,78 @@
+12/11/2021
+    Make Plans for the future
+        1. ** Figure out how to build a docker container inside of a container
+
+        2. *** Allow user to use their own docker file
+
+        3. ** Show the user performance metrics
+
+        4. ** Implement the marketplace payment system
+
+        5. **** Implement the front end of the application
+            React?
+            Sleek, clean, simple
+
+        6. * Design the layout of the site
+            Front page:
+                Introduction describing what the site does and how to use it
+            Table:
+                Table with all the contracts
+            Profile:
+                Shows balance of account
+                Allows for depositing money
+                Shows contracts completed
+                Shows contract created
+            Create:
+                Form for creating a contract
+            Attempt:
+                Form for completing a contract
+            Login:
+                Form for loging in
+            Register:
+                Form for registering for an account
+            Create/pay:
+                Allow the user to pay through paypal instead of their balance
+            Attempt/success:
+                Endpoint the sends payment
+            Deposit:
+                Form for depositing money into the site
+            Withdraw:
+                Form for withdrwaing money from the site
+            Tutorial:
+                Describes how the contract and attempt system works
+                Show examples of test files, showing what the attempter will see
+                Show how payment works and describe the fees
+                Show how to implement machine learning and performance checks tests
+
+        7. **** Implement a code viewer/IDE that allows for highlighting of shown tests/comments
+
+        8. *** Allow for additional files with functions that can be called by the user
+
+        9. *** Incorporate the buissiness (Delaware C-corp)
+
+        10. *** Python command line package or vscode extension for receiving and completing contracts
+
+        11. ** Improve the way contracts are described by the creater
+            Have categories/tags that can be applied to the contract
+
+        12. *** Allow for sorting of the table base on the column or search criteria
+
+        13. ** Allow for receiving emails when certain contracts are created or completed
+
+        14. *** Create a profile page
+
+        15. *** Add login Authetication
+
+        16. ** Allow for refunds when cancelling contracts
+
+        17. * Remove expiration date from form
+
+        18. ** Improve database (Change ids to actually correspond to other tables)
+
+        19. ** Allow the contract creater to receive the function file when a contract is created
+
+        20. **** Figure out how to run other languages
+
+        21. *** Figure out how to send errors without showing the test_split
+
+        22. ** Make the test file read only so the attempter can't print it out

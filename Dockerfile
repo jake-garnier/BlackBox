@@ -14,7 +14,7 @@ RUN pip install -r requirements.txt
 
 ENV PYTHONPATH "${PYTHONPATH}:/app/"
 
-COPY flaskw ./flaskw
-COPY instance ./instance
+COPY flaskw /app/flaskw
+COPY instance /app/instance
 
-CMD [ "python", "./flaskw/__init__.py" ]
+CMD [ "python", "/app/flaskw/__init__.py" ]
