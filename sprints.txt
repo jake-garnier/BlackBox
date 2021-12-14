@@ -28,5 +28,9 @@ Sprint 3 (01/10/2022 - 01/24/2022)
     20. **** Figure out how to run other languages
     21. *** Figure out how to send errors without showing the test_split
     22. ** Make the test file read only so the attempter can't print it out
+    23. **** Improve error handling/logging system
+    24. *** Implement/Figure out how use gunicorn
+    25. *** Implement CI/CD for the application
+    26. **** Write tests that run after ever new commit that tests the basic functionality of the application
 
-    Total: 13
+    Total: 27
