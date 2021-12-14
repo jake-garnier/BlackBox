@@ -11,6 +11,7 @@ from flask import flash, render_template, redirect, url_for, session
 from werkzeug.security import check_password_hash, generate_password_hash
 import importlib.util
 from flask_mysqldb import MySQLdb
+import shutil
 
 ALLOWED_TEST_FILE_EXTENSIONS = {'py'}
 ALLOWED_ATTEMPT_FILE_EXTENSIONS = {'py'}
@@ -140,6 +141,8 @@ def create_contract_view(request, db):
             aws_contract_info = aws.create_lambda(contract_id, uri)
 
             sql.add_aws_contract_info(contract_id, aws_contract_info, db)
+
+            # shutil.rmtree(repositoryName)
 
             return redirect(url_for('paypal_create', id=contract_id))
 

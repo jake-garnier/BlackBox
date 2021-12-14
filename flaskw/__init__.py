@@ -13,9 +13,6 @@ from flask import Flask, jsonify, request, render_template, redirect, url_for, f
 from flask_mysqldb import MySQL
 from flaskw import container as container
 from flaskw import secret_constants as secret_constants
-import boto3
-import docker
-import base64
 
 # export FLASK_APP=flaskw && export FLASK_ENV=development && flask run
 # Jake's computer's alias for above command is "bb"
@@ -160,16 +157,7 @@ def create_app(test_config=None):
     """
     @app.route('/test')
     def test():
-        docker_client = docker.from_env(version='1.24')
-        ecr_client = boto3.client('ecr', region_name='eu-east-2')
-
-        token = ecr_client.get_authorization_token()
-        username, password = base64.b64decode(token['authorizationData'][0]['authorizationToken']).decode().split(':')
-        registry = token['authorizationData'][0]['proxyEndpoint']
-
-        docker_client.login(username, password, registry=registry)
-
-        return 'success'
+        aws.delete_all_ecr_repositories()
                 
     sql.init_app(app)
 

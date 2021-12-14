@@ -1,9 +1,13 @@
-FROM python:3.7-slim
+FROM python:3.7
 
 EXPOSE 5000/tcp
 
 WORKDIR /app
 
+# RUN export DOCKER_HOST="tcp://HOST:2375"
+
+# RUN apk update 
+# RUN apk add
 RUN apt-get update
 RUN apt-get install python3-dev default-libmysqlclient-dev gcc  -y
 

@@ -177,8 +177,32 @@ Description: Creates an aws ecr repository
 def create_ecr_repository(repositoryName):
     
     return ecr_client.create_repository(
-        repositoryName=repositoryName
+        repositoryName=repositoryName,
+        tags=[
+            {
+                'Key': 'ecr-repository',
+                'Value': 'ecr-repository'
+            },
+        ]
     )['repository']['repositoryUri']
+
+def delete_ecr_repository(repositoryName):
+
+    return ecr_client.delete_repository(
+        repositoryName=repositoryName,
+        force=True
+    )
+
+def delete_all_ecr_repositories():
+    
+    repositories = ecr_client.describe_repositories()['repositories']
+
+    for repo in repositories:
+        delete_ecr_repository(repo['repositoryName'])
+
+    return 'Success'
+    
+
 
 """
 Description: Prepends a line to the top of a file

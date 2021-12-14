@@ -35,13 +35,15 @@ def build_image(path, uri):
     username, password = base64.b64decode(token['authorizationData'][0]['authorizationToken']).decode().split(':')
     registry = token['authorizationData'][0]['proxyEndpoint'].replace("https://", "")
 
-
     # Requires ~/.docker/config.json is deleted
     docker_client.login(
         username=username,
         password=password,
         registry=registry
     )
+
+    print(dir(docker_client))
+    print(dir(docker_client.images))
 
     docker_client.images.build(
         path=path,
