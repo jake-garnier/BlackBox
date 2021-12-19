@@ -93,8 +93,9 @@ def create_contract_view(request, db):
         payout = request.form['payout']
         test_file = request.files['test_file']
         test_file_extension = test_file.filename.rsplit('.', 1)[1].lower()
-        requirements_file = request.files['requirements_file']
-        requirements_file_extension = requirements_file.filename.rsplit('.', 1)[1].lower()
+        dockerfile = request.files['dockerfile']
+        # requirements_file_extension = requirements_file.filename.rsplit('.', 1)[1].lower()
+        additional_files = request.files.getlist("additional_files")
 
         error = None
 
@@ -117,12 +118,17 @@ def create_contract_view(request, db):
             error = 'Test file extension ' + test_file_extension + ' is not allowed'
         elif test_file.filename is '':
             error = 'Test file has no name'
-        elif not requirements_file:
-            error = 'Requirements file is required'
-        elif requirements_file_extension not in ALLOWED_REQUIREMENTS_FILE_EXTENSIONS:
-            error = 'Requirements file is not a .txt file'
-        elif requirements_file.filename is '':
-            error = 'Requirements file has no name'
+        elif dockerfile.filename is '':
+            error = 'Dockerfile is required'
+        elif dockerfile.filename != 'Dockerfile':
+            print(dockerfile.filename)
+            error = 'Dockerfile is not named "Dockerfile"'
+        # elif not requirements_file:
+        #     error = 'Requirements file is required'
+        # elif requirements_file_extension not in ALLOWED_REQUIREMENTS_FILE_EXTENSIONS:
+        #     error = 'Requirements file is not a .txt file'
+        # elif requirements_file.filename is '':
+        #     error = 'Requirements file has no name'
 
         if error is None:
 
@@ -133,16 +139,20 @@ def create_contract_view(request, db):
             contract_id = sql.insert_contract(contract_info, db)
 
             repositoryName = 'blackbox_contract' + str(contract_id)
-            container.build_local_repository(requirements_file, test_file, repositoryName)
+            container.build_local_repository(test_file, dockerfile, additional_files, repositoryName)
 
             uri = aws.create_ecr_repository(repositoryName)
+
+            sql.update_contract_status(contract_id, 'Building Container', db)   
+
             container.build_image(repositoryName, uri)
 
             aws_contract_info = aws.create_lambda(contract_id, uri)
 
             sql.add_aws_contract_info(contract_id, aws_contract_info, db)
+            sql.update_contract_status(contract_id, 'Online', db)
 
-            # shutil.rmtree(repositoryName)
+            shutil.rmtree(repositoryName) 
 
             return redirect(url_for('paypal_create', id=contract_id))
 

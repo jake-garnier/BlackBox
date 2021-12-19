@@ -93,7 +93,7 @@ def insert_user(user_info, db):
 def update_contract_status(contract_id, status, db):
     cursor = db.connection.cursor()
     cursor.execute(
-        'UPDATE contracts SET status = %s WHERE id = %s',
+        'UPDATE contracts SET _status = %s WHERE id = %s',
         (status, contract_id)
     )
     db.connection.commit()

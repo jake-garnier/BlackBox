@@ -15,6 +15,8 @@ from shutil import copyfile, rmtree
 # docker tag c1b584db2b6f 147315719954.dkr.ecr.us-east-2.amazonaws.com/blackbox_lambda_repository
 # docker push 147315719954.dkr.ecr.us-east-2.amazonaws.com/blackbox_lambda_repository
 
+# aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 147315719954.dkr.ecr.us-east-2.amazonaws.com
+
 s3_client = boto3.client('s3', region_name='us-east-2',
     aws_access_key_id=secret_constants.AWS_ACCESS_KEY_ID,
     aws_secret_access_key=secret_constants.AWS_SECRET_ACCESS_KEY)
@@ -42,9 +44,6 @@ def build_image(path, uri):
         registry=registry
     )
 
-    print(dir(docker_client))
-    print(dir(docker_client.images))
-
     docker_client.images.build(
         path=path,
         tag=uri
@@ -57,16 +56,19 @@ def build_image(path, uri):
 
     return 'Success'
 
-def build_local_repository(requirements_file, test_file, repositoryName):
+def build_local_repository(test_file, dockerfile, additional_files, repositoryName):
     os.mkdir(repositoryName)
 
-    requirements_file.save(repositoryName + '/requirements.txt')
+    dockerfile.save(repositoryName + '/Dockerfile')
     test_file.save(repositoryName + '/test.py')
+
+    for additional_file in additional_files:
+        additional_file.save(repositoryName + '/' + additional_file.filename)
 
     cur_path = os.getcwd()
 
     copyfile(cur_path + '/flaskw/testingTemplates/pythonTestingTemplateLambda.py', repositoryName + '/app.py')
-    copyfile(cur_path + '/flaskw/lambda/Dockerfile', repositoryName + '/Dockerfile')
+    # copyfile(cur_path + '/flaskw/lambda/Dockerfile', repositoryName + '/Dockerfile')
 
 def delete_all_buckets():
 

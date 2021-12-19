@@ -96,7 +96,7 @@ def create_lambda(contract_id, uri):
 
     lam_client.add_permission(
         FunctionName='blackbox_attempt_handler',
-        StatementId=str(contract_id),
+        StatementId=str(contract_id) + s3_name,
         Action='lambda:InvokeFunction',
         Principal='s3.amazonaws.com',
         SourceArn='arn:aws:s3:::' + s3_name
@@ -134,7 +134,7 @@ def upload_attempt_to_s3(contract_id, attempt_id, attempt_file, db):
     s3 = boto3.resource('s3')
     s3.meta.client.upload_file(attempt_file, contract['s3_bucket_name'], key)
 
-    os.remove(key)
+    os.remove(attempt_file)
 
 
 """
