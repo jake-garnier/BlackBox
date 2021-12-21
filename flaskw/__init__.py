@@ -157,8 +157,16 @@ def create_app(test_config=None):
     """
     @app.route('/test')
     def test():
-        aws.delete_all_ecr_repositories()
-                
+        return 'test'
+
+    @app.route('/hard_reset_application')
+    def hard_reset_application():
+        return aws.hard_reset_application(db)
+    
+    @app.route('/soft_reset_application')
+    def soft_reset_application():
+        return aws.soft_reset_application(db)
+   
     sql.init_app(app)
 
     return app

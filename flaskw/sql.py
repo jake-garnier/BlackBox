@@ -7,6 +7,7 @@ from flask import current_app, g
 from flask.cli import with_appcontext
 import shutil
 import os
+from flaskw import constants as constants
 
 # sudo mysql.server start 
 # sudo mysql.server stop
@@ -41,8 +42,8 @@ Start of db manipulation functions
 
 """
 Description: Inserts a contract into the contracts table.
-@arg contract_info: (title, _description, difficulty, creation_date,
-                     expiration_date, payout, test_filename, payment_id, payer_id, _status).
+@arg contract_info: (title, _description, difficulty, creation_date, expiration_date, payout, 
+                     test_filename, payment_id, payer_id, ecr_repository_name, _status).
 @return (int): The row id of the inserted contract.
 """
 def insert_contract(contract_info, db):
@@ -89,6 +90,7 @@ def insert_user(user_info, db):
     db.connection.commit()
 
     return cursor.lastrowid
+
 
 def update_contract_status(contract_id, status, db):
     cursor = db.connection.cursor()
@@ -170,11 +172,15 @@ def add_aws_contract_info(contract_id, aws_contract_info, db):
     cursor = db.connection.cursor()
     cursor.execute(
         'UPDATE contracts SET s3_bucket_name = %s WHERE id = %s',
-        (aws_contract_info['s3'], contract_id)
+        (aws_contract_info['s3_bucket_name'], contract_id)
     )
     cursor.execute(
         'UPDATE contracts SET lambda_name = %s WHERE id = %s',
-        (aws_contract_info['lambda'], contract_id)
+        (aws_contract_info['lambda_name'], contract_id)
+    )
+    cursor.execute(
+        'UPDATE contracts SET ecr_repository_name = %s WHERE id = %s',
+        (aws_contract_info['ecr_repository_name'], contract_id)
     )
     db.connection.commit()
 
@@ -284,6 +290,27 @@ def get_user_balance(user_id, db):
 
     return received - sent
 
+def reset_database(db):
+    cursor = db.connection.cursor()
+    return executeScriptsFromFile(os.getcwd() + constants.reset_database_path, cursor)
+
+
+def executeScriptsFromFile(filename, cursor):
+    fd = open(filename, 'r')
+    sqlFile = fd.read()
+    fd.close()
+    sqlCommands = sqlFile.split(';')
+
+    for command in sqlCommands:
+        try:
+            if command.strip() != '':
+                cursor.execute(command)
+        except Exception as err:
+            return str(err)
+
+    return 'Success'
+
+    
 """
 Description: Converts the row in a table to a dictionary representation.
 @arg (list) description: The cursor.description when pointing at the said row.

@@ -12,6 +12,7 @@ from random import randint
 from botocore.exceptions import ClientError
 from flaskw import constants as constants
 from flaskw import secret_constants as secret_constants
+from shutil import rmtree
 
 PYTHON_TESTING_TEMPLATE_PATH = 'flaskw/testingTemplates/pythonTestingTemplateLambda.py'
 PYTHON_TESTING_TEMPLATE_NAME = 'pythonTestingTemplateLambda.py'
@@ -118,8 +119,8 @@ def create_lambda(contract_id, uri):
             time.sleep(10)
 
     return {
-        's3': s3_name,
-        'lambda': str(contract_id) + '_lambda'
+        's3_bucket_name': s3_name,
+        'lambda_name': str(contract_id) + '_lambda'
     }
 
 """
@@ -138,38 +139,6 @@ def upload_attempt_to_s3(contract_id, attempt_id, attempt_file, db):
 
 
 """
-Description: Deletes the Lambda Function associated with the inputted name.
-@arg (int) attempt_id: The name of the Lambda Function being deleted.
-"""
-def delete_lambda(name):
-
-    lam_client.delete_function(
-        FunctionName=name,
-    )
-
-
-"""
-Description: Deletes the s3 bucket associated with the inputted name.
-@arg (str) name: The name of the s3 bucket being deleted.
-"""
-def delete_s3(name):
-    s3 = boto3.resource('s3')
-    bucket = s3.Bucket(name)
-    bucket.objects.all().delete()
-    bucket.delete()    
-
-
-"""
-Description: Deletes the aws resources associated with the contract.
-@arg (int) contract_id: The id of the associated contract.
-"""
-def delete_contract_resources(contract_id, db):
-    contract_info = sql.get_contract(contract_id, db)
-
-    delete_lambda(contract_info['lambda_name'])
-    delete_s3(contract_info['s3_bucket_name'])
-
-"""
 Description: Creates an aws ecr repository
 @arg (str) repositoryName: The name of the repository being built
 @return (str): The uri of the built repository
@@ -186,6 +155,60 @@ def create_ecr_repository(repositoryName):
         ]
     )['repository']['repositoryUri']
 
+
+"""
+Description: Deletes the Lambda Function associated with the inputted name.
+@arg (int) attempt_id: The name of the Lambda Function being deleted.
+"""
+def delete_lambda(function_name):
+
+    lam_client.delete_function(
+        FunctionName=function_name,
+    )
+
+
+def delete_all_contract_lambda_functions():
+
+    functions = lam_client.list_functions()['Functions']
+
+    function_names = [function["FunctionName"] for function in functions]
+    delete_functions = [function_name for function_name in function_names 
+                        if len(function_name.split('_')) > 1 and function_name.split('_')[1] == "lambda"]
+
+    try:
+        for function_name in delete_functions:
+            delete_lambda(function_name)
+        return 'Success'
+    except Exception as err:
+        return str(err)
+
+
+"""
+Description: Deletes the s3 bucket associated with the inputted name.
+@arg (str) name: The name of the s3 bucket being deleted.
+"""
+def delete_s3_bucket(name):
+    s3 = boto3.resource('s3')
+    bucket = s3.Bucket(name)
+    bucket.objects.all().delete()
+    bucket.delete()
+
+
+def delete_all_contract_s3_buckets():
+
+    buckets = s3_client.list_buckets()['Buckets']
+
+    bucket_names = [bucket['Name'] for bucket in buckets 
+                    if len(bucket['Name'].split('-')) > 3 and bucket['Name'].split('-')[0] == 'blackbox']
+
+    try:
+        for bucket_name in bucket_names:
+            delete_s3_bucket(bucket_name)
+        return 'Success'
+    except Exception as err:
+        return str(err)
+    
+
 def delete_ecr_repository(repositoryName):
 
     return ecr_client.delete_repository(
@@ -193,15 +216,71 @@ def delete_ecr_repository(repositoryName):
         force=True
     )
 
-def delete_all_ecr_repositories():
+
+def delete_all_contract_ecr_repositories():
     
     repositories = ecr_client.describe_repositories()['repositories']
 
-    for repo in repositories:
-        delete_ecr_repository(repo['repositoryName'])
+    try:
+        for repo in repositories:
+            delete_ecr_repository(repo['repositoryName'])
+        return 'Success'
+    except Exception as err:
+        return str(err)
 
-    return 'Success'
-    
+
+def delete_local_directory(repository_name):
+    curPath = os.getcwd()
+    if os.path.exists(curPath + '/flaskw/cached_contract_repositories/' + repository_name):
+        rmtree('flaskw/cached_contract_repositories/' + repository_name)
+
+
+def delete_all_local_contract_directories():
+    curPath = os.getcwd()
+    local_directories = os.listdir(curPath + '/flaskw/cached_contract_repositories')
+
+    try:
+        for local_directory in local_directories:
+            delete_local_directory(local_directory)
+        return 'Success'
+    except Exception as err:
+        return str(err)
+
+
+"""
+Description: Deletes the aws resources associated with the contract.
+@arg (int) contract_id: The id of the associated contract.
+"""
+def delete_contract_resources(contract_id, db):
+    contract_info = sql.get_contract(contract_id, db)
+
+    delete_lambda(contract_info['lambda_name'])
+    delete_s3_bucket(contract_info['s3_bucket_name'])
+    delete_ecr_repository(contract_info['ecr_repository_name'])
+    delete_local_directory(contract_info['local_repository_name'])
+
+
+def hard_reset_application(db):
+    results = [
+        delete_all_contract_lambda_functions(),
+        delete_all_contract_s3_buckets(),
+        delete_all_contract_ecr_repositories(),
+        delete_all_local_contract_directories(),
+        sql.reset_database(db)
+    ]
+
+    return str(results)
+
+
+def soft_reset_application(db):
+    contracts = sql.get_contracts()
+
+    try:
+        for contract in contracts:
+            delete_contract_resources(contract['id', db])
+        return sql.reset_database(db)
+    except Exception as err:
+        return str(err) + ' on contract: ' + str(contract['id'])
 
 
 """
@@ -211,6 +290,7 @@ Description: Prepends a line to the top of a file
 """
 def line_prepender(file, line):
     return line.rstrip('\r\n') + '\n' + file
+
 
 def random_with_N_digits(n):
     range_start = 10**(n-1)

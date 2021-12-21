@@ -133,26 +133,29 @@ def create_contract_view(request, db):
         if error is None:
 
             contract_info = (title, description, difficulty,
-                             datetime.datetime.now(), expiration_date,
-                             session['user_id'], payout, 'test.' + test_file_extension, None, None, 'Created')
+                             datetime.datetime.now(), expiration_date, session['user_id'], payout, 
+                             'test.' + test_file_extension, None, None, 'Created')
 
             contract_id = sql.insert_contract(contract_info, db)
 
-            repositoryName = 'blackbox_contract' + str(contract_id)
-            container.build_local_repository(test_file, dockerfile, additional_files, repositoryName)
+            repository_name = 'blackbox_contract_' + str(contract_id)
+            local_directory_path = 'flaskw/cached_contract_repositories/blackbox_contract_' + str(contract_id)
 
-            uri = aws.create_ecr_repository(repositoryName)
+            container.build_local_contract_directory(test_file, dockerfile, additional_files, local_directory_path)
+
+            uri = aws.create_ecr_repository(repository_name)
 
             sql.update_contract_status(contract_id, 'Building Container', db)   
 
-            container.build_image(repositoryName, uri)
+            container.build_image(local_directory_path, uri)
 
             aws_contract_info = aws.create_lambda(contract_id, uri)
+            aws_contract_info['ecr_repository_name'] = repository_name
 
             sql.add_aws_contract_info(contract_id, aws_contract_info, db)
             sql.update_contract_status(contract_id, 'Online', db)
 
-            shutil.rmtree(repositoryName) 
+            shutil.rmtree(local_directory_path) 
 
             return redirect(url_for('paypal_create', id=contract_id))
 

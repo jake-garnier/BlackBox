@@ -8,3 +8,5 @@ mysql_password = 'x6978293'
 mysql_db = 'blackbox_database'
 
 attempt_handler_arn = 'arn:aws:lambda:us-east-2:147315719954:function:blackbox_attempt_handler'
+
+reset_database_path = '/flaskw/reset_database.sql'
