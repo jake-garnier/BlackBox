@@ -161,10 +161,10 @@ Description: Deletes the Lambda Function associated with the inputted name.
 @arg (int) attempt_id: The name of the Lambda Function being deleted.
 """
 def delete_lambda(function_name):
-
-    lam_client.delete_function(
-        FunctionName=function_name,
-    )
+    if function_name:
+        lam_client.delete_function(
+            FunctionName=function_name,
+        )
 
 
 def delete_all_contract_lambda_functions():
@@ -187,11 +187,13 @@ def delete_all_contract_lambda_functions():
 Description: Deletes the s3 bucket associated with the inputted name.
 @arg (str) name: The name of the s3 bucket being deleted.
 """
-def delete_s3_bucket(name):
-    s3 = boto3.resource('s3')
-    bucket = s3.Bucket(name)
-    bucket.objects.all().delete()
-    bucket.delete()
+def delete_s3_bucket(bucket_name):
+
+    if bucket_name:
+        s3 = boto3.resource('s3')
+        bucket = s3.Bucket(bucket_name)
+        bucket.objects.all().delete()
+        bucket.delete()
 
 
 def delete_all_contract_s3_buckets():
@@ -209,12 +211,13 @@ def delete_all_contract_s3_buckets():
         return str(err)
     
 
-def delete_ecr_repository(repositoryName):
+def delete_ecr_repository(repository_name):
 
-    return ecr_client.delete_repository(
-        repositoryName=repositoryName,
-        force=True
-    )
+    if repository_name:
+        ecr_client.delete_repository(
+            repositoryName=repository_name,
+            force=True
+        )
 
 
 def delete_all_contract_ecr_repositories():
@@ -230,9 +233,11 @@ def delete_all_contract_ecr_repositories():
 
 
 def delete_local_directory(repository_name):
-    curPath = os.getcwd()
-    if os.path.exists(curPath + '/flaskw/cached_contract_repositories/' + repository_name):
-        rmtree('flaskw/cached_contract_repositories/' + repository_name)
+
+    if repository_name:
+        curPath = os.getcwd()
+        if os.path.exists(curPath + '/flaskw/cached_contract_repositories/' + repository_name):
+            rmtree('flaskw/cached_contract_repositories/' + repository_name)
 
 
 def delete_all_local_contract_directories():

@@ -70,17 +70,13 @@ def build_local_contract_directory(test_file, dockerfile, additional_files, dire
     copyfile(cur_path + '/flaskw/testingTemplates/pythonTestingTemplateLambda.py', directoryName + '/app.py')
 
 
-def delete_all_buckets():
+def prune_docker_images():
+    try:
+        docker.client.images.prune(filters='dangling')
+        return 'Success'
+    except Exception as err:
+        return str(err)
 
-    buckets = s3_client.list_buckets()
-
-    bucket_names = []
-
-    for bucket in buckets['Buckets']:
-        s3_client.delete_bucket(Bucket=bucket['Name'])
-        bucket_names.append(bucket['Name'])
-
-    return ("Deleted: " + str(bucket_names))
 
 def printDirectory(startpath):
     ret = ''
