@@ -64,6 +64,7 @@ def attempt_view(contract_id, request, db):
 
             if error is None:    
                 aws.upload_attempt_to_s3(contract_id, attempt_id, uploaded_filename, db)
+                aws.create_ecs_task(contract_id, attempt_id, sql.get_contract(contract_id, db)['ecr_repository_uri'])
 
                     
             else:
@@ -149,8 +150,16 @@ def create_contract_view(request, db):
 
             container.build_image(local_directory_path, uri)
 
-            aws_contract_info = aws.create_lambda(contract_id, uri)
-            aws_contract_info['ecr_repository_name'] = repository_name
+            # aws_contract_info = aws.create_lambda(contract_id, uri)
+            # aws_contract_info = aws.create_s3_bucket(contract_id)
+            # aws_contract_info['ecr_repository_name'] = repository_name
+            # aws_contract_info['ecr_repository_uri'] = uri
+
+            aws_contract_info = {
+                's3_bucket_name': aws.create_s3_bucket(contract_id),
+                'ecr_repository_name': repository_name,
+                'ecr_repository_uri': uri
+            }
 
             sql.add_aws_contract_info(contract_id, aws_contract_info, db)
             sql.update_contract_status(contract_id, 'Online', db)

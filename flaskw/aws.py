@@ -34,6 +34,10 @@ ecr_client = boto3.client('ecr', region_name='us-east-2',
     aws_access_key_id=secret_constants.AWS_ACCESS_KEY_ID,
     aws_secret_access_key=secret_constants.AWS_SECRET_ACCESS_KEY)
 
+ecs_client = boto3.client('ecs', region_name='us-east-2',
+    aws_access_key_id=secret_constants.AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=secret_constants.AWS_SECRET_ACCESS_KEY)
+
 """
 Description: Creates the lambda_executer role that has the permission to create and run lambda functions.
 I believe it errors out if you run it and the role is already created.
@@ -57,6 +61,23 @@ def create_lambda_executer_iam_user():
     iam_client.attach_role_policy(RoleName='lambda_executer', 
         PolicyArn='arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole')
 
+def create_ecr_execution_role():
+
+    basic_role = """
+    Version: '2012-10-17'
+    Statement:
+        - Effect: Allow
+          Principal: 
+            Service: ecs-tasks.amazonaws.com
+          Action: sts:AssumeRole
+    """
+
+    iam_client.create_role(RoleName='ecs-devops-sandbox-execution-role', 
+        AssumeRolePolicyDocument=json.dumps(yaml.load(basic_role)))
+
+    iam_client.attach_role_policy(RoleName='ecs-devops-sandbox-execution-role', 
+        PolicyArn='arn:aws:iam::147315719954:policy/ecs-execution-role-black-box')
+        
 
 """
 Description: Creates Lambda Function through ECR for a contract.
@@ -122,6 +143,79 @@ def create_lambda(contract_id, uri):
         's3_bucket_name': s3_name,
         'lambda_name': str(contract_id) + '_lambda'
     }
+
+def create_s3_bucket(contract_id):
+
+    while True:
+        s3_name = "blackbox-contract-" + str(contract_id) + "-bucket-" + str(random_with_N_digits(5))
+        try:
+            s3_client.create_bucket(
+                ACL='private',
+                Bucket=s3_name,
+                CreateBucketConfiguration={
+                    'LocationConstraint': 'us-east-2'
+                }
+            )
+            break
+        except ClientError as e:
+            error = e.response['Error']['Code']
+            if error not in ["BucketAlreadyExists", "BucketAlreadyOwnedByYou"]:
+                break
+
+    return s3_name
+
+def create_ecs_task(contract_id, attempt_id, image_uri):
+
+    # Create the ecr execution role iam user and role if it does not exist
+    try:
+        role = iam_client.get_role(RoleName='ecs-devops-sandbox-execution-role')
+    except:
+        create_ecr_execution_role()
+        role = iam_client.get_role(RoleName='ecs-devops-sandbox-execution-role')
+
+    taskName = 'blackbox_contract_' + str(contract_id) + '_attempt_' + str(attempt_id)
+
+    register_task_response = ecs_client.register_task_definition(
+        family=taskName + '_task_definition',
+        # taskRoleArn ='TODO', # TODO allow for calling lambda functions
+        # executionRoleArn = 'TODO', # TODO a
+        networkMode='awsvpc', # Required for fargate tasks
+        executionRoleArn=role['Role']['Arn'],
+        containerDefinitions=[
+            {
+                'name': taskName + '_task',
+                'image': image_uri
+            }
+        ],
+        requiresCompatibilities=[
+            'FARGATE',
+        ],
+        cpu= "256",
+        memory= "512"
+    )
+
+    run_task_response = ecs_client.run_task(
+        taskDefinition=taskName + '_task_definition',
+        launchType='FARGATE',
+        count=1,
+        platformVersion='LATEST',
+        cluster='ecs-devops-sandbox-cluster',
+        networkConfiguration={
+            'awsvpcConfiguration': {
+                'subnets': [
+                    'subnet-0d01e7c1e49036770',
+                    'subnet-09cc45cd9bdbf7c66',
+                    'subnet-0e11a3ac01c825195',
+                    'subnet-0cd452c7b2f68bbff'
+                ],
+                'assignPublicIp': 'ENABLED',
+                'securityGroups': ["sg-0867883f003941218"]
+            }
+        }
+    )
+
+    return str(run_task_response)
+
 
 """
 Description: Executes the Lambda Function associated with the attempt ID.

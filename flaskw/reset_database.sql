@@ -18,6 +18,7 @@ CREATE TABLE contracts (
   s3_bucket_name TEXT,
   lambda_name TEXT,
   ecr_repository_name TEXT,
+  ecr_repository_uri TEXT,
   local_repository_name TEXT,
   _status TEXT
 );

@@ -157,7 +157,8 @@ def create_app(test_config=None):
     """
     @app.route('/test')
     def test():
-        return 'test'
+        image_uri = '147315719954.dkr.ecr.us-east-2.amazonaws.com/blackbox_contract_3'
+        return aws.create_ecs_task(1, 1, image_uri)
 
     @app.route('/hard_reset_application')
     def hard_reset_application():

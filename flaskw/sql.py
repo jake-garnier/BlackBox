@@ -174,13 +174,17 @@ def add_aws_contract_info(contract_id, aws_contract_info, db):
         'UPDATE contracts SET s3_bucket_name = %s WHERE id = %s',
         (aws_contract_info['s3_bucket_name'], contract_id)
     )
-    cursor.execute(
-        'UPDATE contracts SET lambda_name = %s WHERE id = %s',
-        (aws_contract_info['lambda_name'], contract_id)
-    )
+    # cursor.execute(
+    #     'UPDATE contracts SET lambda_name = %s WHERE id = %s',
+    #     (aws_contract_info['lambda_name'], contract_id)
+    # )
     cursor.execute(
         'UPDATE contracts SET ecr_repository_name = %s WHERE id = %s',
         (aws_contract_info['ecr_repository_name'], contract_id)
+    )
+    cursor.execute(
+        'UPDATE contracts SET ecr_repository_uri = %s WHERE id = %s',
+        (aws_contract_info['ecr_repository_uri'], contract_id)
     )
     db.connection.commit()
 
