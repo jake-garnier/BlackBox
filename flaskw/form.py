@@ -148,12 +148,7 @@ def create_contract_view(request, db):
 
             sql.update_contract_status(contract_id, 'Building Container', db)   
 
-            container.build_image(local_directory_path, uri)
-
-            # aws_contract_info = aws.create_lambda(contract_id, uri)
-            # aws_contract_info = aws.create_s3_bucket(contract_id)
-            # aws_contract_info['ecr_repository_name'] = repository_name
-            # aws_contract_info['ecr_repository_uri'] = uri
+            container.build_image(local_directory_path, uri, repository_name)
 
             aws_contract_info = {
                 's3_bucket_name': aws.create_s3_bucket(contract_id),

@@ -1,4 +1,5 @@
 import unittest
+import json
 
 class TestStringMethods(unittest.TestCase):
 

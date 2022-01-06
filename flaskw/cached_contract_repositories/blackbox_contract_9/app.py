@@ -1,15 +1,16 @@
 import unittest
 import sys
-import boto3
 
-s3_client = boto3.client('s3')
+# s3_client = boto3.client('s3')
 
-def handler():
+def lambda_handler(event, context):
 
     contents = event['Contents']
     
     with open('/tmp/attempt.py', 'w') as f:
         f.write(contents)
+    
+    print('CONTESTS: ' + str(contents))
     
     prepend_line('test.py', 'from attempt import test_func')
     
