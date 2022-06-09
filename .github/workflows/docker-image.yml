@@ -1,0 +1,26 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      lask/flaskw/lambdas/ph_recent
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: docker build -t ph_recent flask/flaskw/lambdas/ph_recent
+    - name: Login to ECR
+      run: aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 047019175101.dkr.ecr.us-east-2.amazonaws.com
+    - name: Tag Docker image
+      run: docker tag  ph_recent:latest 047019175101.dkr.ecr.us-east-2.amazonaws.com/ph_recent:latest
+    - name: Push Docker image to ECR repository
+      run: docker push 047019175101.dkr.ecr.us-east-2.amazonaws.com/ph_recent:latest"
