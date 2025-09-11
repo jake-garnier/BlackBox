@@ -1,2 +1,11 @@
 flaskw/secret_constants.py
 .env
+
+# Project documentation files
+CLAUDE.md
+FRONTEND_UPDATES.md
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
