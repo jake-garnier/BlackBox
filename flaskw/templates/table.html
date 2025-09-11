@@ -1,66 +1,123 @@
 <!DOCTYPE html>
-<html>
-<style>
-table, th, td {
-  border:1px solid black;
-}
-</style>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlackBox - Coding Challenges</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
 <body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>BlackBox</h1>
+            <div class="subtitle">Competitive Coding Challenges</div>
+        </div>
 
-{% for message in get_flashed_messages() %}
-<div class="flash">{{ message }}</div>
-{% endfor %}
+        <!-- Flash Messages -->
+        {% for message in get_flashed_messages() %}
+        <div class="flash">{{ message }}</div>
+        {% endfor %}
 
-<h2>Box Table</h2>
+        <!-- Navigation -->
+        <nav class="nav">
+            <a href="{{url_for('create')}}" class="nav-item primary">Create Challenge</a>
+            {% if session['user_id'] %}
+                <a href="{{url_for('logout')}}" class="nav-item">Logout</a>
+            {% else %}
+                <a href="{{url_for('login')}}" class="nav-item">Login</a>
+                <a href="{{url_for('register')}}" class="nav-item">Register</a>
+            {% endif %}
+            
+            {% if session['user_id'] %}
+            <div class="user-info">
+                Logged in as User #{{ session['user_id'] }}
+            </div>
+            {% endif %}
+        </nav>
 
-<p>User Id is {{ session['user_id'] }}</p>
-
-<p>
-  <a href="{{url_for('register')}}">Register</a>
-</p>
-
-<p>
-  <a href="{{url_for('login')}}">Log in</a>
-</p>
-
-<p>
-  <a href="{{url_for('logout')}}">Log out</a>
-</p>
-
-<p>
-  <a href="{{url_for('create')}}">Create a Box</a>
-</p>
-
-<table style="width:100%">
-  <tr>
-    <th>ID</th>
-    <th>Title</th>
-    <th>Status</th>
-    <th>Difficulty</th>
-    <th>Created</th>
-    <th>Expires</th>
-    <th>Creater Id</th>
-    <th>Payout</th>
-    <th>Link</th>
-    <th>Delete</th>
-  </tr>
-{% for contract in contracts %}
-  <tr>
-    <td>{{ contract['id'] }}</td>
-    <td>{{ contract['title'] }}</td>
-    <td>{{ contract['_status'] }}</td>
-    <td>{{ contract['difficulty'] }}</td>
-    <td>{{ contract['creation_date'] }}</td>
-    <td>{{ contract['expiration_date'] }}</td>
-    <td>{{ contract['creater_user_id'] }}</td>
-    <td>{{ contract['payout'] }}</td>
-    <td><a href="{{url_for('viewContract', id=contract['id'])}}">Open</a></td>
-    {% if session['user_id'] == contract['creater_user_id'] %}
-      <td><a href="{{url_for('deleteContract', id=contract['id'])}}">Delete</a></td>
-    {% endif %}
-  </tr>
-{% endfor %}
-</table>
-
+        <!-- Main Content -->
+        <div class="table-container">
+            <div class="table-header">
+                <h2>Active Challenges</h2>
+            </div>
+            
+            {% if contracts %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Status</th>
+                        <th>Difficulty</th>
+                        <th>Created</th>
+                        <th>Expires</th>
+                        <th>Creator</th>
+                        <th>Payout</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for contract in contracts %}
+                    <tr>
+                        <td>{{ contract['id'] }}</td>
+                        <td><strong>{{ contract['title'] }}</strong></td>
+                        <td>
+                            <span class="status-badge status-{{ contract['_status']|lower|replace(' ', '-') }}">
+                                {{ contract['_status'] }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="difficulty-badge difficulty-{{ contract['difficulty']|lower }}">
+                                {{ contract['difficulty'] }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if contract['creation_date'] %}
+                                {{ contract['creation_date'].strftime('%Y-%m-%d') if contract['creation_date'].__class__.__name__ != 'str' else contract['creation_date'][:10] }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if contract['expiration_date'] %}
+                                {{ contract['expiration_date'].strftime('%Y-%m-%d') if contract['expiration_date'].__class__.__name__ != 'str' else contract['expiration_date'][:10] }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if contract['creater_user_id'] %}
+                                User #{{ contract['creater_user_id'] }}
+                            {% else %}
+                                System
+                            {% endif %}
+                        </td>
+                        <td>${{ contract['payout'] }}</td>
+                        <td>
+                            <a href="{{url_for('viewContract', id=contract['id'])}}" class="action-link">
+                                View Challenge
+                            </a>
+                            {% if session['user_id'] == contract['creater_user_id'] %}
+                                <br>
+                                <a href="{{url_for('deleteContract', id=contract['id'])}}" class="action-link danger" 
+                                   onclick="return confirm('Are you sure you want to delete this challenge?')">
+                                    Delete
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <h3>No Challenges Yet</h3>
+                <p>Be the first to create a coding challenge!</p>
+                <a href="{{url_for('create')}}" class="nav-item">Create Your First Challenge</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 </body>
 </html>

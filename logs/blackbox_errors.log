@@ -1,0 +1,366 @@
+[2025-09-10 12:54:54,300] ERROR in app (app.py:1414): Exception on /table [GET]
+Traceback (most recent call last):
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/__init__.py", line 79, in table
+    contracts=sql.get_contracts(db),
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/sql.py", line 251, in get_contracts
+    cursor = db.connection.cursor()
+             ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'cursor'
+[2025-09-10 12:54:54,301] ERROR in __init__ (__init__.py:194): 500 error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+[2025-09-10 12:55:49,054] ERROR in app (app.py:1414): Exception on /table [GET]
+Traceback (most recent call last):
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/__init__.py", line 87, in table
+    contracts = sql.get_contracts(db)
+                ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/sql.py", line 251, in get_contracts
+    cursor = db.connection.cursor()
+             ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'cursor'
+[2025-09-10 12:55:49,054] ERROR in __init__ (__init__.py:211): 500 error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+[2025-09-10 15:13:54,419] ERROR in app (app.py:1414): Exception on /table [GET]
+Traceback (most recent call last):
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/__init__.py", line 110, in table
+    contracts = sql.get_contracts(db)
+                ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/sql.py", line 251, in get_contracts
+    cursor = db.connection.cursor()
+             ^^^^^^^^^^^^^
+AttributeError: 'bool' object has no attribute 'connection'
+[2025-09-10 15:13:54,421] ERROR in __init__ (__init__.py:234): 500 error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+[2025-09-10 15:14:31,737] ERROR in app (app.py:1414): Exception on /table [GET]
+Traceback (most recent call last):
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/__init__.py", line 110, in table
+    contracts = sql.get_contracts(app.config['get_db'])
+                ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/sql.py", line 251, in get_contracts
+    connection = get_db_func()
+             ^^^^^^^^^^^^^
+AttributeError: 'bool' object has no attribute 'connection'
+[2025-09-10 15:14:31,738] ERROR in __init__ (__init__.py:234): 500 error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+[2025-09-10 16:56:06,438] ERROR in app (app.py:1414): Exception on /register [GET]
+Traceback (most recent call last):
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/__init__.py", line 148, in register
+    return form.register_user_view(request, app.config['get_db'])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/form.py", line 162, in register_user_view
+    return render_template('register.html', form=form)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/templating.py", line 151, in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/templating.py", line 132, in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/jinja2/environment.py", line 1301, in render
+    self.environment.handle_exception()
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/jinja2/environment.py", line 936, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/templates/register.html", line 11, in top-level template code
+    {% block content %}
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/templates/register.html", line 21, in block 'content'
+    {{ form.submit(value="Register") }}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/jinja2/utils.py", line 83, in from_obj
+    if hasattr(obj, "jinja_pass_arg"):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flaskw.forms.RegisterForm object' has no attribute 'submit'
+[2025-09-10 16:56:06,448] ERROR in __init__ (__init__.py:236): 500 error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+[2025-09-10 16:56:17,171] ERROR in app (app.py:1414): Exception on /register [GET]
+Traceback (most recent call last):
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/__init__.py", line 148, in register
+    return form.register_user_view(request, app.config['get_db'])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/form.py", line 162, in register_user_view
+    return render_template('register.html', form=form)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/templating.py", line 151, in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/templating.py", line 132, in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/jinja2/environment.py", line 1301, in render
+    self.environment.handle_exception()
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/jinja2/environment.py", line 936, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/templates/register.html", line 11, in top-level template code
+    {% block content %}
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/templates/register.html", line 21, in block 'content'
+    {{ form.submit(value="Register") }}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/jinja2/utils.py", line 83, in from_obj
+    if hasattr(obj, "jinja_pass_arg"):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flaskw.forms.RegisterForm object' has no attribute 'submit'
+[2025-09-10 16:56:17,176] ERROR in __init__ (__init__.py:236): 500 error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+[2025-09-10 16:56:21,237] ERROR in app (app.py:1414): Exception on /register [GET]
+Traceback (most recent call last):
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/__init__.py", line 148, in register
+    return form.register_user_view(request, app.config['get_db'])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/form.py", line 162, in register_user_view
+    return render_template('register.html', form=form)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/templating.py", line 151, in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/templating.py", line 132, in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/jinja2/environment.py", line 1301, in render
+    self.environment.handle_exception()
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/jinja2/environment.py", line 936, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/templates/register.html", line 11, in top-level template code
+    {% block content %}
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/templates/register.html", line 21, in block 'content'
+    {{ form.submit(value="Register") }}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/jinja2/utils.py", line 83, in from_obj
+    if hasattr(obj, "jinja_pass_arg"):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flaskw.forms.RegisterForm object' has no attribute 'submit'
+[2025-09-10 16:56:21,243] ERROR in __init__ (__init__.py:236): 500 error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+[2025-09-10 16:57:14,633] ERROR in app (app.py:1414): Exception on /register [GET]
+Traceback (most recent call last):
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/__init__.py", line 148, in register
+    return form.register_user_view(request, app.config['get_db'])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/form.py", line 162, in register_user_view
+    return render_template('register.html', form=form)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/templating.py", line 151, in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/templating.py", line 132, in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/jinja2/environment.py", line 1301, in render
+    self.environment.handle_exception()
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/jinja2/environment.py", line 936, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/templates/register.html", line 11, in top-level template code
+    {% block content %}
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/templates/register.html", line 21, in block 'content'
+    {{ form.submit(value="Register") }}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/jinja2/utils.py", line 83, in from_obj
+    if hasattr(obj, "jinja_pass_arg"):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flaskw.forms.RegisterForm object' has no attribute 'submit'
+[2025-09-10 16:57:14,634] ERROR in __init__ (__init__.py:236): 500 error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+[2025-09-10 16:59:18,494] ERROR in app (app.py:1414): Exception on /login [POST]
+Traceback (most recent call last):
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/__init__.py", line 159, in login
+    return form.login_user_view(request, db)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/form.py", line 177, in login_user_view
+    user = sql.get_user(username, db)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/sql.py", line 238, in get_user
+    cursor = db.connection.cursor()
+             ^^^^^^^^^^^^^
+AttributeError: 'bool' object has no attribute 'connection'
+[2025-09-10 16:59:18,502] ERROR in __init__ (__init__.py:236): 500 error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+[2025-09-10 17:01:46,322] ERROR in app (app.py:1414): Exception on /table/1 [GET]
+Traceback (most recent call last):
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/__init__.py", line 123, in viewContract
+    return form.attempt_view(id, request, db)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/form.py", line 72, in attempt_view
+    contract=sql.get_contract(contract_id, db),
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/sql.py", line 202, in get_contract
+    cursor = db.connection.cursor()
+             ^^^^^^^^^^^^^
+AttributeError: 'bool' object has no attribute 'connection'
+[2025-09-10 17:01:46,327] ERROR in __init__ (__init__.py:236): 500 error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+[2025-09-10 21:38:52,772] ERROR in app (app.py:1414): Exception on /create [POST]
+Traceback (most recent call last):
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/__init__.py", line 93, in create
+    return form.create_contract_view(request, db)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/form.py", line 105, in create_contract_view
+    contract_id = sql.insert_contract(contract_info, db)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/sql.py", line 50, in insert_contract
+    cursor = db.connection.cursor()
+             ^^^^^^^^^^^^^
+AttributeError: 'bool' object has no attribute 'connection'
+[2025-09-10 21:38:52,775] ERROR in __init__ (__init__.py:236): 500 error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.
+[2025-09-11 11:57:31,168] ERROR in app (app.py:1414): Exception on /create [GET]
+Traceback (most recent call last):
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/__init__.py", line 93, in create
+    return form.create_contract_view(request, app.config['get_db'])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/form.py", line 136, in create_contract_view
+    return render_template('form.html', form=form)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/templating.py", line 151, in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/flask/templating.py", line 132, in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/jinja2/environment.py", line 1301, in render
+    self.environment.handle_exception()
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/jinja2/environment.py", line 936, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/templates/form.html", line 1, in top-level template code
+    {% extends "base.html" %}
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/templates/base.html", line 42, in top-level template code
+    {% block content %}{% endblock %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/workspace/BlackBox/flaskw/templates/form.html", line 65, in block 'content'
+    pass" spellcheck="false">{{ form.test_code.data or '' }}</textarea>
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jakegarnier/anaconda3/lib/python3.11/site-packages/jinja2/environment.py", line 485, in getattr
+    return getattr(obj, attribute)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'flaskw.forms.CreateContractForm object' has no attribute 'test_code'
+[2025-09-11 11:57:31,171] ERROR in __init__ (__init__.py:236): 500 error: 500 Internal Server Error: The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.

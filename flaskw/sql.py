@@ -46,17 +46,21 @@ Description: Inserts a contract into the contracts table.
                      test_filename, payment_id, payer_id, ecr_repository_name, _status).
 @return (int): The row id of the inserted contract.
 """
-def insert_contract(contract_info, db):
-    cursor = db.connection.cursor()
+def insert_contract(contract_info, get_db_func):
+    connection = get_db_func()
+    cursor = connection.cursor()
     cursor.execute(
         'INSERT INTO contracts (title, _description, difficulty, \
         creation_date, expiration_date, creater_user_id, payout, test_filename, \
         payment_id, payer_id, _status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
         contract_info
     )
-    db.connection.commit()
+    connection.commit()
 
-    return cursor.lastrowid
+    lastrowid = cursor.lastrowid
+    cursor.close()
+    connection.close()
+    return lastrowid
 
 
 """
@@ -64,16 +68,20 @@ Description: Inserts an attempt into the attempts table.
 @arg attempt_info: (contract_id, creater_user_id, attempt_filename, function_name, payment_email, _status).
 @return (int): The row id of the inserted attempt.
 """
-def insert_attempt(attempt_info, db):
-    cursor = db.connection.cursor()
+def insert_attempt(attempt_info, get_db_func):
+    connection = get_db_func()
+    cursor = connection.cursor()
     cursor.execute(
         'INSERT INTO attempts (contract_id, creater_user_id, attempt_filename, payment_email, _status) \
         VALUES (%s, %s, %s, %s, %s)',
         attempt_info
     )
-    db.connection.commit()
+    connection.commit()
     
-    return cursor.lastrowid
+    lastrowid = cursor.lastrowid
+    cursor.close()
+    connection.close()
+    return lastrowid
 
 
 """
@@ -81,24 +89,31 @@ Description: Inserts a user into the user table.
 @arg user_info: (username, password).
 @return (int): The row id of the inserted user.
 """
-def insert_user(user_info, db):
-    cursor = db.connection.cursor()
+def insert_user(user_info, get_db_func):
+    connection = get_db_func()
+    cursor = connection.cursor()
     cursor.execute(
         "INSERT INTO users (username, password) VALUES (%s, %s)",
         user_info,
     )
-    db.connection.commit()
+    connection.commit()
+    
+    lastrowid = cursor.lastrowid
+    cursor.close()
+    connection.close()
+    return lastrowid
 
-    return cursor.lastrowid
 
-
-def update_contract_status(contract_id, status, db):
-    cursor = db.connection.cursor()
+def update_contract_status(contract_id, status, get_db_func):
+    connection = get_db_func()
+    cursor = connection.cursor()
     cursor.execute(
         'UPDATE contracts SET _status = %s WHERE id = %s',
         (status, contract_id)
     )
-    db.connection.commit()
+    connection.commit()
+    cursor.close()
+    connection.close()
 
 
 """
@@ -118,13 +133,16 @@ def delete_contract(contract_id, db):
 Description: Deletes an attempt from the attempts table.
 @arg (int) attempt_id: The row id of the attempt.
 """
-def delete_attempt(attempt_id, db):
-    cursor = db.connection.cursor()
+def delete_attempt(attempt_id, get_db_func):
+    connection = get_db_func()
+    cursor = connection.cursor()
     cursor.execute(
         "DELETE FROM attempts WHERE id = %s",
         (attempt_id, )
     )
-    db.connection.commit()
+    connection.commit()
+    cursor.close()
+    connection.close()
 
 
 """
@@ -168,8 +186,9 @@ Description: Adds the names of the s3 bucket and lambda function to the contract
 @arg (int) contract_id: The id of the contract.
 @arg (dict) aws_contract_info: dict with the s3 name under 's3' and lambda name under 'lambda'
 """
-def add_aws_contract_info(contract_id, aws_contract_info, db):
-    cursor = db.connection.cursor()
+def add_aws_contract_info(contract_id, aws_contract_info, get_db_func):
+    connection = get_db_func()
+    cursor = connection.cursor()
     cursor.execute(
         'UPDATE contracts SET s3_bucket_name = %s WHERE id = %s',
         (aws_contract_info['s3_bucket_name'], contract_id)
@@ -186,7 +205,9 @@ def add_aws_contract_info(contract_id, aws_contract_info, db):
         'UPDATE contracts SET ecr_repository_uri = %s WHERE id = %s',
         (aws_contract_info['ecr_repository_uri'], contract_id)
     )
-    db.connection.commit()
+    connection.commit()
+    cursor.close()
+    connection.close()
 
 
 """
@@ -194,17 +215,23 @@ Description: Gets a dictionary of the row's columns;
 @arg contract_id: The row id of the contract.
 @return (dict): The row's fields in dictionary form.
 """
-def get_contract(contract_id, db):
-    cursor = db.connection.cursor()
+def get_contract(contract_id, get_db_func):
+    connection = get_db_func()
+    cursor = connection.cursor()
     cursor.execute(
         'SELECT * from contracts WHERE id = %s', (contract_id, )
     )
     row = cursor.fetchone()
 
     if not row:
+        cursor.close()
+        connection.close()
         return None
 
-    return parse_row(cursor.description, row)
+    result = parse_row(cursor.description, row)
+    cursor.close()
+    connection.close()
+    return result
 
 
 """
@@ -230,32 +257,41 @@ Description: Gets a dictionary of the row's columns
 @arg username: The user's username.
 @return (dict): The row's fields in dictionary form.
 """
-def get_user(username, db):
-    cursor = db.connection.cursor()
+def get_user(username, get_db_func):
+    connection = get_db_func()
+    cursor = connection.cursor()
     cursor.execute(
         'SELECT * FROM users WHERE username = %s', (username,)
     )
     row = cursor.fetchone()
 
     if not row:
+        cursor.close()
+        connection.close()
         return None
 
-    return parse_row(cursor.description, row)
+    result = parse_row(cursor.description, row)
+    cursor.close()
+    connection.close()
+    return result
 
 
 """
 Description: Gets a list of dictionaries of all the contracts in the contract table.
 @return (list(dict)): The information about all the contracts in the contract table.
 """
-def get_contracts(db):
-    cursor = db.connection.cursor()
+def get_contracts(get_db_func):
+    connection = get_db_func()
+    cursor = connection.cursor()
     cursor.execute('SELECT * FROM contracts')
     rows = cursor.fetchall()
     
     ret = list()
     for row in rows:
         ret.append(parse_row(cursor.description, row))
-
+    
+    cursor.close()
+    connection.close()
     return ret
 
 
@@ -264,8 +300,9 @@ Description: Gets a list of dictionaries of all the attempts for a cetain contra
 @arg (int) contract_id: The row id of the contract.
 @return (list(dict)): The information about all the attempts for a cetain contract.
 """
-def get_contract_attempts(contract_id, db):
-    cursor = db.connection.cursor()
+def get_contract_attempts(contract_id, get_db_func):
+    connection = get_db_func()
+    cursor = connection.cursor()
     cursor.execute(
         'SELECT * FROM attempts WHERE contract_id = %s',
         (contract_id, )
@@ -276,6 +313,8 @@ def get_contract_attempts(contract_id, db):
     for row in rows:
         ret.append(parse_row(cursor.description, row))
     
+    cursor.close()
+    connection.close()
     return ret
 
 def get_user_balance(user_id, db):

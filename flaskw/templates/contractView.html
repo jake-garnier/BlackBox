@@ -1,96 +1,488 @@
-<!DOCTYPE html>
-<html>
-<style>
-  table, th, td {
-    border:1px solid black;
-  }
-  </style>
-<body>
+{% extends "base.html" %}
 
-{% for message in get_flashed_messages() %}
-  <div class="flash">{{ message }}</div>
-{% endfor %}
+{% block title %}{{ contract['title'] }} - BlackBox Challenge{% endblock %}
 
-<h2>Contract</h2>
+{% block content %}
+<a href="{{ url_for('table') }}" class="back-button">Back to Challenges</a>
 
-<p>ID: {{ contract['id'] }}</p>
-<p>Title: {{ contract['title'] }}</p>
-<p>Difficulty: {{ contract['difficulty'] }}</p>
-<p>Created: {{ contract['creation_date'] }}</p>
-<p>Expires: {{ contract['expiration_date'] }}</p>
-<p>Creater ID: {{ contract['creater_user_id'] }}</p>
-<p>Payout: {{ contract['payout'] }}</p>
+<!-- Challenge Header -->
+<div class="challenge-header">
+    <h1 class="challenge-title">{{ contract['title'] }}</h1>
+    
+    <div class="challenge-meta">
+        <div class="meta-item">
+            <span class="meta-label">Challenge ID</span>
+            <span class="meta-value">#{{ contract['id'] }}</span>
+        </div>
+        
+        <div class="meta-item">
+            <span class="meta-label">Difficulty</span>
+            <span class="meta-value">
+                <span class="difficulty-badge difficulty-{{ contract['difficulty']|lower }}">
+                    {{ contract['difficulty'] }}
+                </span>
+            </span>
+        </div>
+        
+        <div class="meta-item">
+            <span class="meta-label">Status</span>
+            <span class="meta-value">
+                <span class="status-badge status-{{ contract['_status']|lower|replace(' ', '-') }}">
+                    {{ contract['_status'] }}
+                </span>
+            </span>
+        </div>
+        
+        <div class="meta-item">
+            <span class="meta-label">Payout</span>
+            <span class="meta-value">${{ contract['payout'] }}</span>
+        </div>
+        
+        <div class="meta-item">
+            <span class="meta-label">Created</span>
+            <span class="meta-value">
+                {% if contract['creation_date'] %}
+                    {{ contract['creation_date'].strftime('%Y-%m-%d') if contract['creation_date'].__class__.__name__ != 'str' else contract['creation_date'][:10] }}
+                {% else %}
+                    -
+                {% endif %}
+            </span>
+        </div>
+        
+        <div class="meta-item">
+            <span class="meta-label">Expires</span>
+            <span class="meta-value">
+                {% if contract['expiration_date'] %}
+                    {{ contract['expiration_date'].strftime('%Y-%m-%d') if contract['expiration_date'].__class__.__name__ != 'str' else contract['expiration_date'][:10] }}
+                {% else %}
+                    No expiration
+                {% endif %}
+            </span>
+        </div>
+    </div>
+    
+    {% if contract['_description'] %}
+    <div class="challenge-description">
+        <p>{{ contract['_description'] }}</p>
+    </div>
+    {% endif %}
+</div>
 
-<form method="post" enctype="multipart/form-data">
-  <p>
-    <label for="payment_email">payment_email</label>
-    <input name="payment_email" id="payment_email">
-  </p>
-  <p><input type="file" name="file"></p>
-  <p><input type="submit" value="Attempt"></p>
-</form>
+<!-- Submit Solution Section -->
+{% if session['user_id'] %}
+<div class="submit-section">
+    <h3>Submit Your Solution</h3>
+    
+    <form method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="payment_email" class="form-label">PayPal Email (for payout)</label>
+            <input type="email" name="payment_email" id="payment_email" class="form-input" 
+                   placeholder="Enter your PayPal email address" required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Your Solution</label>
+            <div class="code-editor-container">
+                <div class="code-editor-header">
+                    <h3>Python Solution</h3>
+                    <div class="code-editor-tabs">
+                        <button type="button" class="code-editor-tab active" data-mode="editor">Code Editor</button>
+                        <button type="button" class="code-editor-tab" data-mode="upload">Upload File</button>
+                    </div>
+                </div>
+                
+                <div id="editor-mode" class="editor-mode">
+                    <div class="code-editor">
+                        <div class="code-editor-wrapper">
+                            <div class="line-numbers" id="line-numbers">1</div>
+                            <div class="code-content">
+                                <textarea name="solution_code" id="solution-textarea" class="code-textarea" placeholder="def test_func():
+    # Write your solution here
+    # This function should solve the challenge
+    pass" spellcheck="false"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="code-editor-footer">
+                        <div class="code-stats">
+                            <span>Lines: <span id="line-count">1</span></span>
+                            <span>Characters: <span id="char-count">0</span></span>
+                        </div>
+                        <div>Python 3</div>
+                    </div>
+                </div>
+                
+                <div id="upload-mode" class="upload-area">
+                    <div class="file-upload-area">
+                        <p><strong>Choose your Python solution file</strong></p>
+                        <p>Your file should contain a function named <code>test_func</code></p>
+                        <input type="file" name="file" accept=".py" class="form-input form-file">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <input type="submit" value="Submit Solution" class="form-submit">
+    </form>
+</div>
+{% else %}
+<div class="submit-section">
+    <h3>Submit Your Solution</h3>
+    <p class="text-center">
+        <a href="{{ url_for('login') }}" class="btn btn-primary">Login to Submit Solution</a>
+    </p>
+</div>
+{% endif %}
 
-<h2>Total Attempts</h2>
+<!-- All Attempts Section -->
+<div class="attempts-section">
+    <div class="attempts-header">
+        <h3>All Attempts ({{ attempts|length }})</h3>
+    </div>
+    
+    {% if attempts %}
+    <table class="attempts-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Submitter</th>
+                <th>Filename</th>
+                <th>Status</th>
+                <th>Result</th>
+                <th>Failed Tests</th>
+                <th>Submitted</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for attempt in attempts %}
+            <tr>
+                <td>#{{ attempt['id'] }}</td>
+                <td>
+                    {% if session['user_id'] == attempt['creater_user_id'] %}
+                        <strong>You</strong>
+                    {% else %}
+                        User #{{ attempt['creater_user_id'] }}
+                    {% endif %}
+                </td>
+                <td>{{ attempt['attempt_filename'] or '-' }}</td>
+                <td>
+                    <span class="status-badge status-{{ attempt['_status']|lower|replace(' ', '-') }}">
+                        {{ attempt['_status'] }}
+                    </span>
+                </td>
+                <td>
+                    {% if attempt['ran'] %}
+                        {% if attempt['success'] %}
+                            <span class="success-indicator success">Passed</span>
+                        {% else %}
+                            <span class="success-indicator failure">Failed</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="success-indicator pending">Pending</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if attempt['failed_tests'] %}
+                        <code>{{ attempt['failed_tests'] }}</code>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    {% if attempt['creation_date'] %}
+                        {{ attempt['creation_date'].strftime('%m/%d %H:%M') if attempt['creation_date'].__class__.__name__ != 'str' else attempt['creation_date'][:16] }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-attempts">
+        <h4>No Attempts Yet</h4>
+        <p>Be the first to submit a solution to this challenge!</p>
+    </div>
+    {% endif %}
+</div>
 
-<table style="width:100%">
-  <tr>
-    <th>ID</th>
-    <th>Contract ID</th>
-    <th>Creater ID</th>
-    <th>Filename</th>
-    <th>Status</th>
-    <th>Ran</th>
-    <th>Success</th>
-    <th>Failed Tests</th>
-    <th>Function Name</th>
-    <th>Payment Email</th>
-  </tr>
-{% for attempt in attempts %}
-  <tr>
-    <td>{{ attempt['id'] }}</td>
-    <td>{{ attempt['contract_id'] }}</td>
-    <td>{{ attempt['creater_user_id'] }}</td>
-    <td>{{ attempt['attempt_filename'] }}</td>
-    <td>{{ attempt['_status'] }}</td>
-    <td>{{ attempt['ran'] }}</td>
-    <td>{{ attempt['success'] }}</td>
-    <td>{{ attempt['failed_tests'] }}</td>
-    <td>{{ attempt['function_name'] }}</td>
-    <td>{{ attempt['payment_email'] }}</td>
-  </tr>
-{% endfor %}
-</table>
+<!-- Your Attempts Section -->
+{% if session['user_id'] %}
+{% set user_attempts = attempts|selectattr('creater_user_id', 'equalto', session['user_id'])|list %}
+<div class="attempts-section">
+    <div class="attempts-header">
+        <h3>Your Attempts ({{ user_attempts|length }})</h3>
+    </div>
+    
+    {% if user_attempts %}
+    <table class="attempts-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Filename</th>
+                <th>Status</th>
+                <th>Result</th>
+                <th>Failed Tests</th>
+                <th>Submitted</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for attempt in user_attempts %}
+            <tr>
+                <td>#{{ attempt['id'] }}</td>
+                <td>{{ attempt['attempt_filename'] or '-' }}</td>
+                <td>
+                    <span class="status-badge status-{{ attempt['_status']|lower|replace(' ', '-') }}">
+                        {{ attempt['_status'] }}
+                    </span>
+                </td>
+                <td>
+                    {% if attempt['ran'] %}
+                        {% if attempt['success'] %}
+                            <span class="success-indicator success">Passed</span>
+                        {% else %}
+                            <span class="success-indicator failure">Failed</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="success-indicator pending">Pending</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if attempt['failed_tests'] %}
+                        <code>{{ attempt['failed_tests'] }}</code>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    {% if attempt['creation_date'] %}
+                        {{ attempt['creation_date'].strftime('%m/%d %H:%M') if attempt['creation_date'].__class__.__name__ != 'str' else attempt['creation_date'][:16] }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-attempts">
+        <h4>You Haven't Submitted Any Solutions Yet</h4>
+        <p>Upload your Python solution file above to get started!</p>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
 
-<h2>Your Attempts</h2>
-
-<table style="width:100%">
-  <tr>
-    <th>ID</th>
-    <th>Contract ID</th>
-    <th>Creater ID</th>
-    <th>Filename</th>
-    <th>Status</th>
-    <th>Ran</th>
-    <th>Success</th>
-    <th>Failed Tests</th>
-    <th>Function Name</th>
-    <th>Payment Email</th>
-  </tr>
-{% for attempt in attempts %}
-  {% if session['user_id'] == attempt['contract_id'] %}
-    <td>{{ attempt['id'] }}</td>
-    <td>{{ attempt['contract_id'] }}</td>
-    <td>{{ attempt['creater_user_id'] }}</td>
-    <td>{{ attempt['attempt_filename'] }}</td>
-    <td>{{ attempt['_status'] }}</td>
-    <td>{{ attempt['ran'] }}</td>
-    <td>{{ attempt['success'] }}</td>
-    <td>{{ attempt['failed_tests'] }}</td>
-    <td>{{ attempt['function_name'] }}</td>
-    <td>{{ attempt['payment_email'] }}</td>
-  {% endif %}
-{% endfor %}
-</table>
-
-</body>
-</html>
+<script>
+// Code editor functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const textarea = document.getElementById('solution-textarea');
+    const lineNumbers = document.getElementById('line-numbers');
+    const lineCountSpan = document.getElementById('line-count');
+    const charCountSpan = document.getElementById('char-count');
+    const tabs = document.querySelectorAll('.code-editor-tab');
+    const editorMode = document.getElementById('editor-mode');
+    const uploadMode = document.getElementById('upload-mode');
+    const fileUploadArea = document.querySelector('.file-upload-area');
+    const fileInput = document.querySelector('input[type="file"]');
+    
+    // Update line numbers and stats
+    function updateEditor() {
+        const content = textarea.value;
+        const lines = content.split('\n');
+        const lineCount = lines.length;
+        
+        // Update line numbers
+        let lineNumbersText = '';
+        for (let i = 1; i <= lineCount; i++) {
+            lineNumbersText += i + '\n';
+        }
+        lineNumbers.textContent = lineNumbersText;
+        
+        // Update stats
+        lineCountSpan.textContent = lineCount;
+        charCountSpan.textContent = content.length;
+    }
+    
+    // Handle textarea input
+    if (textarea) {
+        textarea.addEventListener('input', updateEditor);
+        textarea.addEventListener('scroll', function() {
+            lineNumbers.scrollTop = textarea.scrollTop;
+        });
+        
+        // Handle tab key for indentation
+        textarea.addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                const selectedText = this.value.substring(start, end);
+                
+                if (e.shiftKey) {
+                    // Shift+Tab: Remove indentation
+                    if (start === end) {
+                        // Single cursor - remove indentation from current line
+                        const lineStart = this.value.lastIndexOf('\n', start - 1) + 1;
+                        const lineText = this.value.substring(lineStart, this.value.indexOf('\n', start));
+                        if (lineText.startsWith('    ')) {
+                            this.value = this.value.substring(0, lineStart) + lineText.substring(4) + this.value.substring(lineStart + lineText.length);
+                            this.selectionStart = this.selectionEnd = start - 4;
+                        }
+                    } else {
+                        // Multiple lines selected - remove indentation from all
+                        const beforeSelection = this.value.substring(0, start);
+                        const afterSelection = this.value.substring(end);
+                        
+                        // Find the actual start of the first line
+                        const lineStartPos = beforeSelection.lastIndexOf('\n') + 1;
+                        const lineEndPos = this.value.indexOf('\n', end);
+                        const actualEnd = lineEndPos === -1 ? this.value.length : lineEndPos;
+                        
+                        // Get the full text including complete lines
+                        const fullText = this.value.substring(lineStartPos, actualEnd);
+                        const lines = fullText.split('\n');
+                        const processedLines = lines.map(line => line.startsWith('    ') ? line.substring(4) : line);
+                        const newText = processedLines.join('\n');
+                        
+                        this.value = this.value.substring(0, lineStartPos) + newText + this.value.substring(actualEnd);
+                        this.selectionStart = lineStartPos;
+                        this.selectionEnd = lineStartPos + newText.length;
+                    }
+                } else {
+                    // Tab: Add indentation
+                    if (start === end) {
+                        // Single cursor - insert 4 spaces
+                        this.value = this.value.substring(0, start) + '    ' + this.value.substring(end);
+                        this.selectionStart = this.selectionEnd = start + 4;
+                    } else {
+                        // Multiple lines selected - add indentation to all
+                        const lines = selectedText.split('\n');
+                        const indentedLines = lines.map(line => '    ' + line);
+                        const newText = indentedLines.join('\n');
+                        this.value = this.value.substring(0, start) + newText + this.value.substring(end);
+                        this.selectionStart = start;
+                        this.selectionEnd = start + newText.length;
+                    }
+                }
+                updateEditor();
+            }
+        });
+        
+        // Initialize
+        updateEditor();
+    }
+    
+    // Handle tab switching
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const mode = this.dataset.mode;
+            
+            // Update tab appearance
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show/hide modes
+            if (mode === 'editor') {
+                editorMode.style.display = 'block';
+                uploadMode.style.display = 'none';
+                // Clear file input when switching to editor
+                if (fileInput) fileInput.value = '';
+            } else if (mode === 'upload') {
+                editorMode.style.display = 'none';
+                uploadMode.style.display = 'block';
+                // Clear textarea when switching to upload
+                if (textarea) textarea.value = '';
+                updateEditor();
+            }
+        });
+    });
+    
+    // File upload functionality
+    if (fileUploadArea && fileInput) {
+        // Handle drag and drop
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            fileUploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            fileUploadArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            fileUploadArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight(e) {
+            fileUploadArea.classList.add('dragover');
+        }
+        
+        function unhighlight(e) {
+            fileUploadArea.classList.remove('dragover');
+        }
+        
+        fileUploadArea.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            fileInput.files = files;
+            
+            if (files.length > 0) {
+                updateFileUploadText(files[0].name);
+                loadFileContent(files[0]);
+            }
+        }
+        
+        // Handle file selection
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                updateFileUploadText(e.target.files[0].name);
+                loadFileContent(e.target.files[0]);
+            }
+        });
+        
+        function updateFileUploadText(filename) {
+            const p = fileUploadArea.querySelector('p');
+            p.innerHTML = `<strong>${filename}</strong><br>Ready to submit!`;
+        }
+        
+        function loadFileContent(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // Switch to editor mode and populate with file content
+                document.querySelector('[data-mode="editor"]').click();
+                textarea.value = e.target.result;
+                updateEditor();
+            };
+            reader.readAsText(file);
+        }
+    }
+    
+    // Form submission handling
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const activeTab = document.querySelector('.code-editor-tab.active');
+            const mode = activeTab ? activeTab.dataset.mode : 'editor';
+            
+            // If in editor mode and textarea has content, disable file input
+            if (mode === 'editor' && textarea && textarea.value.trim()) {
+                if (fileInput) fileInput.disabled = true;
+            }
+            // If in upload mode and file is selected, disable textarea
+            else if (mode === 'upload' && fileInput && fileInput.files.length > 0) {
+                if (textarea) textarea.disabled = true;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

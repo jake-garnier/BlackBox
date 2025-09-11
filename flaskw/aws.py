@@ -7,36 +7,38 @@ import json
 import yaml
 import os
 import time
+import logging
 from flaskw import sql as sql
 from random import randint
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, BotoCoreError
 from flaskw import constants as constants
-from flaskw import secret_constants as secret_constants
 from shutil import rmtree
+
+logger = logging.getLogger('flaskw')
 
 PYTHON_TESTING_TEMPLATE_PATH = 'flaskw/testingTemplates/pythonTestingTemplateLambda.py'
 PYTHON_TESTING_TEMPLATE_NAME = 'pythonTestingTemplateLambda.py'
 PYTHON_TESTING_TEMPLATE_HANDLER_PATH = 'pythonTestingTemplateLambda.lambda_handler'
 
-lam_client = boto3.client('lambda', region_name='us-east-2', 
-    aws_access_key_id=secret_constants.AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=secret_constants.AWS_SECRET_ACCESS_KEY)
+lam_client = boto3.client('lambda', region_name=os.environ.get('AWS_REGION', 'us-east-2'), 
+    aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+    aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'))
 
-iam_client = boto3.client('iam', region_name='us-east-2',
-    aws_access_key_id=secret_constants.AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=secret_constants.AWS_SECRET_ACCESS_KEY)
+iam_client = boto3.client('iam', region_name=os.environ.get('AWS_REGION', 'us-east-2'),
+    aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+    aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'))
 
-s3_client  = boto3.client('s3', region_name='us-east-2',
-    aws_access_key_id=secret_constants.AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=secret_constants.AWS_SECRET_ACCESS_KEY)
+s3_client  = boto3.client('s3', region_name=os.environ.get('AWS_REGION', 'us-east-2'),
+    aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+    aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'))
 
-ecr_client = boto3.client('ecr', region_name='us-east-2',
-    aws_access_key_id=secret_constants.AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=secret_constants.AWS_SECRET_ACCESS_KEY)
+ecr_client = boto3.client('ecr', region_name=os.environ.get('AWS_REGION', 'us-east-2'),
+    aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+    aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'))
 
-ecs_client = boto3.client('ecs', region_name='us-east-2',
-    aws_access_key_id=secret_constants.AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=secret_constants.AWS_SECRET_ACCESS_KEY)
+ecs_client = boto3.client('ecs', region_name=os.environ.get('AWS_REGION', 'us-east-2'),
+    aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+    aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'))
 
 """
 Description: Creates the lambda_executer role that has the permission to create and run lambda functions.
@@ -89,9 +91,15 @@ def create_lambda(contract_id, uri):
     # Create the lambda iam user and role if it does not exist
     try:
         role = iam_client.get_role(RoleName='lambda_executer')
-    except:
-        create_lambda_executer_iam_user()
-        role = iam_client.get_role(RoleName='lambda_executer')
+        logger.info("Using existing lambda_executer role")
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'NoSuchEntity':
+            logger.info("Creating lambda_executer role")
+            create_lambda_executer_iam_user()
+            role = iam_client.get_role(RoleName='lambda_executer')
+        else:
+            logger.error(f"Error getting lambda_executer role: {e}")
+            raise
 
     response = lam_client.create_function(
         PackageType='Image',
@@ -169,9 +177,15 @@ def create_ecs_task(contract_id, attempt_id, image_uri):
     # Create the ecr execution role iam user and role if it does not exist
     try:
         role = iam_client.get_role(RoleName='ecs-devops-sandbox-execution-role')
-    except:
-        create_ecr_execution_role()
-        role = iam_client.get_role(RoleName='ecs-devops-sandbox-execution-role')
+        logger.info("Using existing ecs-devops-sandbox-execution-role")
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'NoSuchEntity':
+            logger.info("Creating ecs-devops-sandbox-execution-role")
+            create_ecr_execution_role()
+            role = iam_client.get_role(RoleName='ecs-devops-sandbox-execution-role')
+        else:
+            logger.error(f"Error getting ecs-devops-sandbox-execution-role: {e}")
+            raise
 
     taskName = 'blackbox_contract_' + str(contract_id) + '_attempt_' + str(attempt_id)
 

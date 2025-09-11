@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Access Forbidden - BlackBox{% endblock %}
+
+{% block content %}
+<div style="text-align: center; padding: 50px;">
+    <h1 style="font-size: 72px; color: #ffc107; margin: 0;">403</h1>
+    <h2 style="color: #ffc107;">Access Forbidden</h2>
+    <p style="font-size: 18px; color: #6c757d; margin: 20px 0;">
+        You don't have permission to access this resource.
+    </p>
+    <p style="color: #6c757d;">
+        Please log in or contact support if you believe this is an error.
+    </p>
+    <a href="{{ url_for('login') }}" class="btn">Login</a>
+    <a href="{{ url_for('table') }}" class="btn">Return to Contracts</a>
+</div>
+{% endblock %}

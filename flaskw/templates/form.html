@@ -1,50 +1,288 @@
-<!DOCTYPE html>
-<html>
-<body>
+{% extends "base.html" %}
 
-<h2>Form</h2>
-
-{% for message in get_flashed_messages() %}
-  <div class="flash">{{ message }}</div>
-{% endfor %}
+{% block title %}Create Challenge - BlackBox{% endblock %}
 
 {% block content %}
-  <form method="post" enctype="multipart/form-data">
-    <p>
-      <label for="title">Title</label>
-      <input name="title" id="title">
-    </p>
-    <p>
-      <label for="description">Description</label>
-      <input name="description" id="description">
-    </p>
-    <p>
-      <label for="difficulty">Difficulty</label>
-      <input type="number" name="difficulty" id="difficulty">
-    </p>
-    <p>
-      <label for="expiration_date">Expiration Date</label>
-      <input type="datetime-local" name="expiration_date" id="expiration_date">
-    </p>
-    <p>
-      <label for="payout">Payout</label>
-      <input type="number" name="payout" id="payout">
-    </p>
-    <p>
-      <label for="test_file">Test File</label>
-      <input type="file" name="test_file">
-    </p>
-    <p>
-      <label for="dockerfile">DockerFile</label>
-      <input type="file" name="dockerfile">
-    </p>
-    <p>
-      <label for="additional_files">Additional Files</label>
-      <input type="file" name="additional_files" multiple>
-    </p>
-    <p><input type="submit" value="Post"></p>
-  </form>
-{% endblock %}
+<a href="{{ url_for('table') }}" class="back-button">Back to Challenges</a>
 
-</body>
-</html>
+<div class="form-container">
+    <h2>Create New Challenge</h2>
+    
+    <form method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="title" class="form-label">Challenge Title</label>
+            <input name="title" id="title" class="form-input" value="{{ form.title.data or '' }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="description" class="form-label">Description</label>
+            <textarea name="description" id="description" class="form-input form-textarea" rows="4" 
+                      placeholder="Describe what participants need to accomplish...">{{ form.description.data or '' }}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="difficulty" class="form-label">Difficulty Level</label>
+            <select name="difficulty" id="difficulty" class="form-input" required>
+                <option value="">Select difficulty...</option>
+                <option value="Easy" {% if form.difficulty.data == 'Easy' %}selected{% endif %}>Easy</option>
+                <option value="Medium" {% if form.difficulty.data == 'Medium' %}selected{% endif %}>Medium</option>
+                <option value="Hard" {% if form.difficulty.data == 'Hard' %}selected{% endif %}>Hard</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="expiration_date" class="form-label">Expiration Date (Optional)</label>
+            <input type="datetime-local" name="expiration_date" id="expiration_date" class="form-input" value="{{ form.expiration_date.data or '' }}">
+        </div>
+        
+        <div class="form-group">
+            <label for="payout" class="form-label">Payout ($)</label>
+            <input type="number" name="payout" id="payout" class="form-input" min="0" step="0.01" 
+                   placeholder="0.00" value="{{ form.payout.data or '' }}">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Test File (.py)</label>
+            <div class="code-editor-container">
+                <div class="code-editor-header">
+                    <h3>Test Cases</h3>
+                    <div class="code-editor-tabs">
+                        <button type="button" class="code-editor-tab active" data-mode="editor">Code Editor</button>
+                        <button type="button" class="code-editor-tab" data-mode="upload">Upload File</button>
+                    </div>
+                </div>
+                
+                <div id="test-editor-mode" class="editor-mode">
+                    <div class="code-editor">
+                        <div class="code-editor-wrapper">
+                            <div class="line-numbers" id="test-line-numbers">1</div>
+                            <div class="code-content">
+                                <textarea name="test_code" id="test-textarea" class="code-textarea" placeholder="def test_function():
+    # Write your test cases here
+    # Example:
+    # assert your_function(input1) == expected_output1
+    # assert your_function(input2) == expected_output2
+    pass" spellcheck="false">{{ form.test_code.data or '' }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="code-editor-footer">
+                        <div class="code-stats">
+                            <span>Lines: <span id="test-line-count">1</span></span>
+                            <span>Characters: <span id="test-char-count">0</span></span>
+                        </div>
+                        <div>Python 3 Test Cases</div>
+                    </div>
+                </div>
+                
+                <div id="test-upload-mode" class="upload-area">
+                    <div class="file-upload-area">
+                        <p><strong>Upload your Python test file</strong></p>
+                        <p>Python file containing test cases for the challenge</p>
+                        <input type="file" name="test_file" id="test_file" class="form-input form-file" accept=".py">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="dockerfile" class="form-label">Dockerfile (Optional)</label>
+            <input type="file" name="dockerfile" id="dockerfile" class="form-input form-file">
+            <small style="color: #6c757d; font-size: 0.875rem;">
+                Docker configuration for custom environment setup
+            </small>
+        </div>
+        
+        <div class="form-group">
+            <label for="additional_files" class="form-label">Additional Files (Optional)</label>
+            <input type="file" name="additional_files" id="additional_files" class="form-input form-file" 
+                   multiple>
+            <small style="color: #6c757d; font-size: 0.875rem;">
+                Any additional files participants might need
+            </small>
+        </div>
+        
+        <input type="submit" value="Create Challenge" class="form-submit">
+    </form>
+</div>
+
+<script>
+// Code editor functionality for test file
+document.addEventListener('DOMContentLoaded', function() {
+    const testTextarea = document.getElementById('test-textarea');
+    const testLineNumbers = document.getElementById('test-line-numbers');
+    const testLineCountSpan = document.getElementById('test-line-count');
+    const testCharCountSpan = document.getElementById('test-char-count');
+    const testTabs = document.querySelectorAll('.code-editor-tab');
+    const testEditorMode = document.getElementById('test-editor-mode');
+    const testUploadMode = document.getElementById('test-upload-mode');
+    const testFileInput = document.getElementById('test_file');
+    
+    // Update line numbers and stats for test editor
+    function updateTestEditor() {
+        if (!testTextarea) return;
+        
+        const content = testTextarea.value;
+        const lines = content.split('\n');
+        const lineCount = lines.length;
+        
+        // Update line numbers
+        let lineNumbersText = '';
+        for (let i = 1; i <= lineCount; i++) {
+            lineNumbersText += i + '\n';
+        }
+        testLineNumbers.textContent = lineNumbersText;
+        
+        // Update stats
+        testLineCountSpan.textContent = lineCount;
+        testCharCountSpan.textContent = content.length;
+    }
+    
+    // Handle test textarea input
+    if (testTextarea) {
+        testTextarea.addEventListener('input', updateTestEditor);
+        testTextarea.addEventListener('scroll', function() {
+            testLineNumbers.scrollTop = testTextarea.scrollTop;
+        });
+        
+        // Handle tab key for indentation
+        testTextarea.addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                const selectedText = this.value.substring(start, end);
+                
+                if (e.shiftKey) {
+                    // Shift+Tab: Remove indentation
+                    if (start === end) {
+                        // Single cursor - remove indentation from current line
+                        const lineStart = this.value.lastIndexOf('\n', start - 1) + 1;
+                        const lineText = this.value.substring(lineStart, this.value.indexOf('\n', start));
+                        if (lineText.startsWith('    ')) {
+                            this.value = this.value.substring(0, lineStart) + lineText.substring(4) + this.value.substring(lineStart + lineText.length);
+                            this.selectionStart = this.selectionEnd = start - 4;
+                        }
+                    } else {
+                        // Multiple lines selected - remove indentation from all
+                        const beforeSelection = this.value.substring(0, start);
+                        const afterSelection = this.value.substring(end);
+                        
+                        // Find the actual start of the first line
+                        const lineStartPos = beforeSelection.lastIndexOf('\n') + 1;
+                        const lineEndPos = this.value.indexOf('\n', end);
+                        const actualEnd = lineEndPos === -1 ? this.value.length : lineEndPos;
+                        
+                        // Get the full text including complete lines
+                        const fullText = this.value.substring(lineStartPos, actualEnd);
+                        const lines = fullText.split('\n');
+                        const processedLines = lines.map(line => line.startsWith('    ') ? line.substring(4) : line);
+                        const newText = processedLines.join('\n');
+                        
+                        this.value = this.value.substring(0, lineStartPos) + newText + this.value.substring(actualEnd);
+                        this.selectionStart = lineStartPos;
+                        this.selectionEnd = lineStartPos + newText.length;
+                    }
+                } else {
+                    // Tab: Add indentation
+                    if (start === end) {
+                        // Single cursor - insert 4 spaces
+                        this.value = this.value.substring(0, start) + '    ' + this.value.substring(end);
+                        this.selectionStart = this.selectionEnd = start + 4;
+                    } else {
+                        // Multiple lines selected - add indentation to all
+                        const beforeSelection = this.value.substring(0, start);
+                        const afterSelection = this.value.substring(end);
+                        
+                        // Find the actual start of the first line
+                        const lineStartPos = beforeSelection.lastIndexOf('\n') + 1;
+                        const lineEndPos = this.value.indexOf('\n', end);
+                        const actualEnd = lineEndPos === -1 ? this.value.length : lineEndPos;
+                        
+                        // Get the full text including complete lines
+                        const fullText = this.value.substring(lineStartPos, actualEnd);
+                        const lines = fullText.split('\n');
+                        const indentedLines = lines.map(line => '    ' + line);
+                        const newText = indentedLines.join('\n');
+                        
+                        this.value = this.value.substring(0, lineStartPos) + newText + this.value.substring(actualEnd);
+                        this.selectionStart = lineStartPos;
+                        this.selectionEnd = lineStartPos + newText.length;
+                    }
+                }
+                updateTestEditor();
+            }
+        });
+        
+        // Initialize
+        updateTestEditor();
+    }
+    
+    // Handle tab switching for test editor
+    testTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const mode = this.dataset.mode;
+            
+            // Update tab appearance
+            testTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show/hide modes
+            if (mode === 'editor') {
+                testEditorMode.style.display = 'block';
+                testUploadMode.style.display = 'none';
+                // Clear file input when switching to editor
+                if (testFileInput) testFileInput.value = '';
+            } else if (mode === 'upload') {
+                testEditorMode.style.display = 'none';
+                testUploadMode.style.display = 'block';
+                // Clear textarea when switching to upload
+                if (testTextarea) testTextarea.value = '';
+                updateTestEditor();
+            }
+        });
+    });
+    
+    // Handle file loading for test editor
+    if (testFileInput) {
+        testFileInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Switch to editor mode and populate with file content
+                    document.querySelector('[data-mode="editor"]').click();
+                    testTextarea.value = e.target.result;
+                    updateTestEditor();
+                };
+                reader.readAsText(file);
+            }
+        });
+    }
+    
+    // Form submission handling for test editor
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const activeTab = document.querySelector('.code-editor-tab.active');
+            const mode = activeTab ? activeTab.dataset.mode : 'editor';
+            
+            // If in editor mode and textarea has content, disable file input
+            if (mode === 'editor' && testTextarea && testTextarea.value.trim()) {
+                if (testFileInput) testFileInput.disabled = true;
+            }
+            // If in upload mode and file is selected, disable textarea
+            else if (mode === 'upload' && testFileInput && testFileInput.files.length > 0) {
+                if (testTextarea) testTextarea.disabled = true;
+            }
+            // If neither has content, show error
+            else if ((!testTextarea || !testTextarea.value.trim()) && (!testFileInput || testFileInput.files.length === 0)) {
+                e.preventDefault();
+                alert('Please provide either test code or upload a test file');
+                return false;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

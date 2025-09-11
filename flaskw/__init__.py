@@ -5,14 +5,16 @@ Description: Contains the initialization functions and endpoints of the flask ap
 
 import os
 from flaskw import sql as sql
-from flaskw import form as form
+from flaskw import form_handlers as form_handlers
 from flaskw import paypal as paypal
 from flaskw import aws as aws
 from flaskw import constants as constants
 from flask import Flask, jsonify, request, render_template, redirect, url_for, flash, session, g
-from flask_mysqldb import MySQL
+import MySQLdb
+from flask_wtf.csrf import CSRFProtect
 from flaskw import container as container
-from flaskw import secret_constants as secret_constants
+from flaskw.config import config
+from flaskw.logging_config import setup_logging
 
 # export FLASK_APP=flaskw && export FLASK_ENV=development && flask run
 # Jake's computer's alias for above command is "bb"
@@ -29,15 +31,43 @@ def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
 
-    app.config.from_mapping(
-        SECRET_KEY='dev',
-        MYSQL_HOST=constants.mysql_host,
-        MYSQL_USER=constants.mysql_user,
-        MYSQL_PASSWORD=constants.mysql_password,
-        MYSQL_DB=constants.mysql_db
-    )
+    # Load configuration
+    config_name = os.environ.get('FLASK_ENV', 'development')
+    app.config.from_object(config[config_name])
 
-    db = MySQL(app)
+    # Setup logging first
+    logger = setup_logging(app)
+
+    # Initialize database connection
+    try:
+        # Create direct MySQL connection
+        db_connection = MySQLdb.connect(
+            host=app.config['MYSQL_HOST'],
+            user=app.config['MYSQL_USER'],
+            passwd=app.config['MYSQL_PASSWORD'],
+            db=app.config['MYSQL_DB']
+        )
+        # Test the connection
+        cursor = db_connection.cursor()
+        cursor.execute("SELECT 1")
+        cursor.close()
+        db_connection.close()
+        
+        # Store connection function in app config for later use
+        def get_db():
+            return MySQLdb.connect(
+                host=app.config['MYSQL_HOST'],
+                user=app.config['MYSQL_USER'],
+                passwd=app.config['MYSQL_PASSWORD'],
+                db=app.config['MYSQL_DB']
+            )
+        app.config['get_db'] = get_db
+        db = True  # Flag to indicate database is available
+        logger.info("Database connection successful")
+    except Exception as e:
+        logger.warning(f"Database connection failed: {e}. Running in demo mode without database.")
+        db = None
+    csrf = CSRFProtect(app)
 
     payouts_client = paypal.configure()
 
@@ -60,7 +90,7 @@ def create_app(test_config=None):
     """
     @app.route('/create', methods=('GET', 'POST'))
     def create():
-        return form.create_contract_view(request, db)
+        return form_handlers.create_contract_view(request, app.config['get_db'])
 
 
     """
@@ -68,8 +98,19 @@ def create_app(test_config=None):
     """
     @app.route('/table')
     def table():
+        if not db:
+            # Demo mode without database
+            contracts = [
+                {'id': 1, 'title': 'Demo Contract 1', 'description': 'Sample contract for testing', 
+                 'difficulty': 'Easy', 'payout': 100, '_status': 'Demo Mode'},
+                {'id': 2, 'title': 'Demo Contract 2', 'description': 'Another sample contract', 
+                 'difficulty': 'Medium', 'payout': 250, '_status': 'Demo Mode'}
+            ]
+        else:
+            contracts = sql.get_contracts(app.config['get_db'])
+        
         return render_template('table.html',
-                               contracts=sql.get_contracts(db),
+                               contracts=contracts,
                                session=session)
 
 
@@ -79,7 +120,7 @@ def create_app(test_config=None):
     """
     @app.route('/table/<int:id>', methods=('GET', 'POST'))
     def viewContract(id):
-        return form.attempt_view(id, request, db)
+        return form_handlers.attempt_view(id, request, app.config['get_db'])
 
 
     """
@@ -99,7 +140,12 @@ def create_app(test_config=None):
     """
     @app.route('/register', methods=('GET', 'POST'))
     def register(): 
-        return form.register_user_view(request, db)
+        if not db:
+            from flaskw.forms import RegisterForm
+            demo_form = RegisterForm()
+            flash('Demo mode: Registration not available without database connection.')
+            return render_template('register.html', form=demo_form)
+        return form_handlers.register_user_view(request, app.config['get_db'])
 
 
     """
@@ -107,7 +153,10 @@ def create_app(test_config=None):
     """
     @app.route('/login', methods=('GET', 'POST'))
     def login():
-        return form.login_user_view(request, db)
+        if not db:
+            flash('Demo mode: Login not available without database connection.')
+            return render_template('login.html')
+        return form_handlers.login_user_view(request, app.config['get_db'])
 
 
     """
@@ -155,6 +204,14 @@ def create_app(test_config=None):
     """
     Helper Endpoints
     """
+    @app.route('/')
+    def index():
+        return redirect(url_for('table'))
+    
+    @app.route('/health')
+    def health():
+        return {'status': 'healthy', 'message': 'BlackBox application is running'}
+    
     @app.route('/test')
     def test():
         image_uri = '147315719954.dkr.ecr.us-east-2.amazonaws.com/blackbox_contract_3'
@@ -167,6 +224,27 @@ def create_app(test_config=None):
     @app.route('/soft_reset_application')
     def soft_reset_application():
         return aws.soft_reset_application(db)
+    
+    # Error handlers
+    @app.errorhandler(404)
+    def not_found_error(error):
+        logger.warning(f"404 error: {request.url}")
+        return render_template('404.html'), 404
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        logger.error(f"500 error: {error}")
+        if db and hasattr(db, 'connection') and db.connection:
+            try:
+                db.connection.rollback()
+            except Exception as e:
+                logger.warning(f"Failed to rollback database transaction: {e}")
+        return render_template('500.html'), 500
+
+    @app.errorhandler(403)
+    def forbidden_error(error):
+        logger.warning(f"403 error: {request.url}")
+        return render_template('403.html'), 403
    
     sql.init_app(app)
 

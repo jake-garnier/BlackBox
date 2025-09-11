@@ -1,12 +1,14 @@
 import docker
 import boto3
 import base64
+import logging
 from flaskw import constants as constants
-from flaskw import secret_constants as secret_constants
 import os
 from shutil import copyfile, rmtree
 import sh
 import sys
+
+logger = logging.getLogger('flaskw')
 
 # docker build -t jakegarnier/test2 .
 # docker manifest create jakegarnier/test2 --amend jakegarnier/test2
@@ -19,13 +21,13 @@ import sys
 
 # aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 147315719954.dkr.ecr.us-east-2.amazonaws.com
 
-s3_client = boto3.client('s3', region_name='us-east-2',
-    aws_access_key_id=secret_constants.AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=secret_constants.AWS_SECRET_ACCESS_KEY)
+s3_client = boto3.client('s3', region_name=os.environ.get('AWS_REGION', 'us-east-2'),
+    aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+    aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'))
 
-ecr_client = boto3.client('ecr', region_name='us-east-2',
-    aws_access_key_id=secret_constants.AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=secret_constants.AWS_SECRET_ACCESS_KEY)
+ecr_client = boto3.client('ecr', region_name=os.environ.get('AWS_REGION', 'us-east-2'),
+    aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+    aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'))
 
 def build_image(path, uri, ecr_repository_name):
 
@@ -92,7 +94,31 @@ def add_attempt_to_image(attempt_id, attempt_file, uri):
 def build_local_contract_directory(test_file, dockerfile, additional_files, directoryName):
     os.mkdir(directoryName)
 
-    dockerfile.save(directoryName + '/Dockerfile')
+    # If dockerfile is provided, use it; otherwise create a default Python Dockerfile
+    if dockerfile and dockerfile.filename:
+        dockerfile.save(directoryName + '/Dockerfile')
+    else:
+        # Create a default Python Dockerfile for testing
+        default_dockerfile_content = """FROM python:3.9-slim
+
+WORKDIR /app
+
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+CMD ["python", "app.py"]
+"""
+        with open(directoryName + '/Dockerfile', 'w') as f:
+            f.write(default_dockerfile_content)
+        
+        # Also create a basic requirements.txt if none exists
+        requirements_content = """pytest
+"""
+        with open(directoryName + '/requirements.txt', 'w') as f:
+            f.write(requirements_content)
+
     test_file.save(directoryName + '/test.py')
 
     for additional_file in additional_files:
@@ -105,9 +131,15 @@ def build_local_contract_directory(test_file, dockerfile, additional_files, dire
 
 def prune_docker_images():
     try:
+        logger.info("Pruning dangling docker images")
         docker.client.images.prune(filters='dangling')
+        logger.info("Successfully pruned docker images")
         return 'Success'
+    except docker.errors.APIError as err:
+        logger.error(f"Docker API error while pruning images: {err}")
+        return str(err)
     except Exception as err:
+        logger.error(f"Unexpected error while pruning docker images: {err}")
         return str(err)
 
 

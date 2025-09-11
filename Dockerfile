@@ -1,18 +1,17 @@
-FROM python:3.7
+FROM python:3.9-slim
 
-EXPOSE 5000/tcp
-
+# Set working directory
 WORKDIR /app
 
-RUN apt-get update
-RUN apt-get install python3-dev default-libmysqlclient-dev gcc  -y
+# Copy test files
+COPY test_find_max.py /app/
+COPY solution.py /app/
 
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+# Install any dependencies (none needed for this simple test)
+# RUN pip install --no-cache-dir -r requirements.txt
 
-ENV PYTHONPATH "${PYTHONPATH}:/app/"
+# Make test file executable
+RUN chmod +x test_find_max.py
 
-COPY flaskw /app/flaskw
-COPY instance /app/instance
-
-CMD [ "python", "/app/flaskw/__init__.py" ]
+# Run the tests
+CMD ["python", "test_find_max.py"]

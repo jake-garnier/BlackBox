@@ -1,22 +1,29 @@
-<!DOCTYPE html>
-<html>
-<body>
+{% extends "base.html" %}
 
-<h2>Register</h2>
-
-{% for message in get_flashed_messages() %}
-  <div class="flash">{{ message }}</div>
-{% endfor %}
+{% block title %}Register - BlackBox{% endblock %}
 
 {% block content %}
-<form method="post">
-    <label for="username">Username</label>
-    <input name="username" id="username" required>
-    <label for="password">Password</label>
-    <input type="password" name="password" id="password" required>
-    <input type="submit" value="Register">
-  </form>
-{% endblock %}
+<div class="form-container">
+    <h2>Create Account</h2>
+    
+    <form method="post">
+        {{ form.hidden_tag() }}
+        
+        <div class="form-group">
+            <label for="username" class="form-label">Username</label>
+            {{ form.username(class="form-input", id="username", required=true) }}
+        </div>
+        
+        <div class="form-group">
+            <label for="password" class="form-label">Password</label>
+            {{ form.password(class="form-input", id="password", required=true) }}
+        </div>
+        
+        {{ form.submit(class="form-submit", value="Create Account") }}
+    </form>
 
-</body>
-</html>
+    <div class="form-link">
+        <p>Already have an account? <a href="{{url_for('login')}}">Login here</a></p>
+    </div>
+</div>
+{% endblock %}
